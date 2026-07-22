@@ -1,0 +1,37 @@
+{
+  "name": "hushflow",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=24.18.0 <25",
+    "pnpm": "11.15.1"
+  },
+  "scripts": {
+    "bootstrap:tools": "bash scripts/setup/bootstrap-tools.sh",
+    "build": "node scripts/setup/run-turbo.mjs build",
+    "format:check": "prettier --check . --ignore-path .prettierignore",
+    "lint": "eslint eslint.config.mjs vitest.config.ts scripts/**/*.ts && node scripts/setup/run-turbo.mjs lint",
+    "typecheck": "tsc -p tsconfig.scripts.json --noEmit && node scripts/setup/run-turbo.mjs typecheck",
+    "test": "vitest run --passWithNoTests && node scripts/setup/run-turbo.mjs test",
+    "test:coverage": "vitest run --coverage --passWithNoTests && node scripts/setup/run-turbo.mjs test:coverage",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build",
+    "preflight:toolchain": "bash -lc 'source scripts/setup/use-local-tools.sh && scripts/setup/check-toolchain.sh'",
+    "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
+    "preflight:fcc": "bash scripts/setup/check-fcc-access.sh"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "10.7.0",
+    "prettier": "3.9.6",
+    "tsx": "4.23.1",
+    "turbo": "2.10.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0",
+    "viem": "2.55.5",
+    "vitest": "4.1.10",
+    "zod": "4.4.3"
+  }
+}

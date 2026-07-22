@@ -1,0 +1,33 @@
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  {
+    ignores: [
+      "**/.next/**",
+      "**/.tools/**",
+      "**/artifacts/**",
+      "**/cache/**",
+      "**/coverage/**",
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/out/**",
+      "contracts/**",
+      "docs/**",
+    ],
+  },
+  ...tseslint.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.scripts.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+    },
+  },
+);

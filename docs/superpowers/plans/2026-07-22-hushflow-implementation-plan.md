@@ -94,7 +94,7 @@ The current machine has WSL2 Ubuntu 24.04 and Docker Desktop. Native Windows cur
 | --- | --- |
 | next | 16.2.11 |
 | react / react-dom | 19.2.8 |
-| typescript | 7.0.2 |
+| typescript | 6.0.3 |
 | tailwindcss | 4.3.3 |
 | wagmi | 3.7.3 |
 | viem | 2.55.5 |

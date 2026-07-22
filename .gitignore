@@ -1,0 +1,28 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.next/
+.turbo/
+.tools/
+artifacts/
+broadcast/
+cache/
+coverage/
+dist/
+node_modules/
+out/
+result/
+results/
+
+# FCC-generated local configuration and secrets
+services/fcc-extension/config/extension.env
+services/fcc-extension/config/proxy/*.toml
+
+# Foundry
+contracts/lib/
+
+# Editor and OS state
+.idea/
+.vscode/
+Thumbs.db

@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - services/*
+  - packages/*
+  - tests/*
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - viem@2.55.5
