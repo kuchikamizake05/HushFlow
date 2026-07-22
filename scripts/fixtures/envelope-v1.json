@@ -1,0 +1,34 @@
+{
+  "sellerMinimum": {
+    "schemaVersion": 1,
+    "chainId": 114,
+    "contractAddress": "0x1111111111111111111111111111111111111111",
+    "rfqId": "42",
+    "sender": "0x2222222222222222222222222222222222222222",
+    "payloadKind": "SELLER_MINIMUM",
+    "value": "94000000",
+    "payloadNonce": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "providerQuotes": [
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "contractAddress": "0x1111111111111111111111111111111111111111",
+      "rfqId": "42",
+      "sender": "0x3333333333333333333333333333333333333333",
+      "payloadKind": "PROVIDER_QUOTE",
+      "value": "95000000",
+      "payloadNonce": "0x0000000000000000000000000000000000000000000000000000000000000002"
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "contractAddress": "0x1111111111111111111111111111111111111111",
+      "rfqId": "42",
+      "sender": "0x4444444444444444444444444444444444444444",
+      "payloadKind": "PROVIDER_QUOTE",
+      "value": "97000000",
+      "payloadNonce": "0x0000000000000000000000000000000000000000000000000000000000000003"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "trade": {
+    "schemaVersion": 1,
+    "chainId": 114,
+    "contractAddress": "0x1111111111111111111111111111111111111111",
+    "rfqId": "42",
+    "resultType": "TRADE",
+    "winningProvider": "0x4444444444444444444444444444444444444444",
+    "winningQuote": "97000000",
+    "resultExpiry": "1900000300",
+    "resultNonce": "0x1000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "noValidQuote": {
+    "schemaVersion": 1,
+    "chainId": 114,
+    "contractAddress": "0x1111111111111111111111111111111111111111",
+    "rfqId": "42",
+    "resultType": "NO_VALID_QUOTE",
+    "winningProvider": "0x0000000000000000000000000000000000000000",
+    "winningQuote": "0",
+    "resultExpiry": "1900000300",
+    "resultNonce": "0x1000000000000000000000000000000000000000000000000000000000000002"
+  },
+  "invalidRfq": {
+    "schemaVersion": 1,
+    "chainId": 114,
+    "contractAddress": "0x1111111111111111111111111111111111111111",
+    "rfqId": "42",
+    "resultType": "INVALID_RFQ",
+    "winningProvider": "0x0000000000000000000000000000000000000000",
+    "winningQuote": "0",
+    "resultExpiry": "1900000300",
+    "resultNonce": "0x1000000000000000000000000000000000000000000000000000000000000003"
+  }
+}
