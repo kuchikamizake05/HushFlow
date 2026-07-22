@@ -29,6 +29,7 @@ Scaffold commit: 08db460
 
 - FCC C-chain indexer credentials are not present in the environment.
 - FCC extension proxy URL is not present.
+- Coston2-only public tunnel credentials are not present in the environment.
 - The exact USDT0 token dispensed by the official Coston2 faucet has not been confirmed through an approved faucet request.
 - FCC reference repository source cannot be copied until its license or permission is documented.
 

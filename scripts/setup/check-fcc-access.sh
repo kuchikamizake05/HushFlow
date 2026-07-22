@@ -10,7 +10,8 @@ for name in \
   FCC_INDEXER_DB_USER \
   FCC_INDEXER_DB_PASSWORD \
   FCC_EXT_PROXY_URL \
-  FCC_NORMAL_PROXY_URL; do
+  FCC_NORMAL_PROXY_URL \
+  NGROK_AUTHTOKEN; do
   value="$(printenv "$name" 2>/dev/null || true)"
   if [[ -n "$value" ]]; then
     printf 'SET     %s\n' "$name"
