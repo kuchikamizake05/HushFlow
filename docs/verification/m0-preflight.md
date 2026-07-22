@@ -34,6 +34,15 @@ Scaffold commit: 08db460
 
 The FCC and faucet blockers require user-provided access or explicit approval for an external action. They do not invalidate the local reproducibility gate.
 
+## First RED handoff
+
+The interface-first M1 tests were executed after the green M0 scaffold gate:
+
+- Vitest fails because `packages/protocol/src/fcc.js` does not exist yet.
+- Forge fails because `contracts/src/HushFlowResultVerifier.sol` does not exist yet.
+
+These are the intended RED signals. No production protocol or verifier code was added while the external M1 blockers remain open.
+
 ## Privacy
 
 Environment checks report only SET or MISSING. No secret value is recorded in this document.
