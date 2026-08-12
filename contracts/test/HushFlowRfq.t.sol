@@ -5,6 +5,7 @@ import {HushFlowRfq} from "../src/HushFlowRfq.sol";
 import {HushFlowResultVerifier} from "../src/HushFlowResultVerifier.sol";
 import {ITeeExtensionRegistry} from "../src/interfaces/ITeeExtensionRegistry.sol";
 import {ITeeMachineRegistry} from "../src/interfaces/ITeeMachineRegistry.sol";
+import {AdversarialToken} from "./harness/AdversarialToken.sol";
 
 interface Vm {
     function addr(uint256 privateKey) external returns (address);
@@ -57,6 +58,10 @@ contract MockTeeRegistry is ITeeExtensionRegistry {
 
     function setInstructionSender(address sender) external {
         instructionSender = sender;
+    }
+
+    function setNextInstructionId(bytes32 instructionId) external {
+        nextInstructionId = instructionId;
     }
 
     function nextPublicExtensionId() external pure returns (uint256) {
@@ -135,7 +140,7 @@ contract HushFlowRfqTest {
     uint256 internal constant QUOTE_CAP = 120_000_000;
     uint256 internal constant WINNING_QUOTE = 97_000_000;
     uint64 internal constant QUOTE_DEADLINE = 2_000;
-    uint64 internal constant RESOLUTION_DEADLINE = 3_000;
+    uint64 internal constant RESOLUTION_DEADLINE = 3_800;
 
     MockToken internal fxrp;
     MockToken internal usdt0;
@@ -189,6 +194,193 @@ contract HushFlowRfqTest {
         require(fxrp.balanceOf(address(rfq)) == 0 && usdt0.balanceOf(address(rfq)) == 0, "dust");
     }
 
+    function testAccountingTracksDepositsBeforeFinalization() public {
+        uint256 rfqId = _createAndQuote();
+
+        (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        ) = rfq.accounting(rfqId);
+
+        require(depositedFxrp == LOT, "deposited FXRP");
+        require(depositedUsdt0 == 2 * QUOTE_CAP, "deposited USDT0");
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "open RFQ became claimable");
+        require(claimedFxrp == 0 && claimedUsdt0 == 0, "open RFQ marked claimed");
+    }
+
+    function testAccountingConservesTerminalEntitlementsAcrossClaims() public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+
+        (,, uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+            rfq.accounting(rfqId);
+        require(claimableFxrp == LOT, "terminal FXRP entitlement");
+        require(claimableUsdt0 == 2 * QUOTE_CAP, "terminal USDT0 entitlement");
+        require(claimedFxrp == 0 && claimedUsdt0 == 0, "premature claimed totals");
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+        (,, claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        require(claimableFxrp == LOT, "seller consumed FXRP entitlement");
+        require(claimableUsdt0 == 2 * QUOTE_CAP - WINNING_QUOTE, "seller USDT0 entitlement remains");
+        require(claimedFxrp == 0 && claimedUsdt0 == WINNING_QUOTE, "seller claimed totals");
+
+        vm.prank(PROVIDER_B);
+        rfq.claim(rfqId);
+        vm.prank(PROVIDER_A);
+        rfq.claim(rfqId);
+        (,, claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "entitlements remain after all claims");
+        require(claimedFxrp == LOT, "claimed FXRP conservation");
+        require(claimedUsdt0 == 2 * QUOTE_CAP, "claimed USDT0 conservation");
+    }
+
+    function testRejectsFalseReturnDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.FALSE_RETURN);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "false-return deposit accepted");
+        require(target.nextRfqId() == 1, "failed deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "failed deposit retained tokens");
+    }
+
+    function testRejectsRevertingDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.REVERT_CALL);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "reverting deposit accepted");
+        require(target.nextRfqId() == 1, "reverting deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "reverting deposit retained tokens");
+    }
+
+    function testRejectsShortDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.SHORT_TRANSFER);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "short deposit accepted");
+        require(target.nextRfqId() == 1, "short deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "short deposit state did not roll back");
+    }
+
+    function testRejectsBalanceIncreasingDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.BONUS_TRANSFER);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "balance-increasing deposit accepted");
+        require(target.nextRfqId() == 1, "balance-increasing deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "inflated deposit state did not roll back");
+    }
+
+    function testOutgoingFalseReturnPreservesCancellationEntitlement() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        require(_tryCreateOn(target), "standard deposit failed");
+        vm.prank(SELLER);
+        target.cancelRfq(1);
+        adversarial.setTransferMode(AdversarialToken.Mode.FALSE_RETURN);
+
+        vm.prank(SELLER);
+        (bool claimedSuccessfully,) = address(target).call(abi.encodeCall(target.claim, (1)));
+
+        require(!claimedSuccessfully, "false-return claim succeeded");
+        require(!target.claimed(1, SELLER), "failed claim consumed entitlement");
+        (,, uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        require(claimableFxrp == LOT && claimedFxrp == 0, "failed claim changed accounting");
+
+        adversarial.setTransferMode(AdversarialToken.Mode.STANDARD);
+        vm.prank(SELLER);
+        target.claim(1);
+        require(adversarial.balanceOf(SELLER) == LOT, "restored claim failed");
+    }
+
+    function testRevertingOutgoingTransferPreservesCancellationEntitlement() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        require(_tryCreateOn(target), "standard deposit failed");
+        vm.prank(SELLER);
+        target.cancelRfq(1);
+        adversarial.setTransferMode(AdversarialToken.Mode.REVERT_CALL);
+
+        vm.prank(SELLER);
+        (bool claimedSuccessfully,) = address(target).call(abi.encodeCall(target.claim, (1)));
+
+        require(!claimedSuccessfully, "reverting claim succeeded");
+        require(!target.claimed(1, SELLER), "reverting claim consumed entitlement");
+        (,, uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        require(claimableFxrp == LOT && claimedFxrp == 0, "reverting claim changed accounting");
+    }
+
+    function testFuzzAcceptsEveryBoundedQuoteWindow(uint64 seed) public {
+        uint64 duration = uint64(60 + uint256(seed) % (86_400 - 60 + 1));
+        uint64 quoteDeadline = uint64(block.timestamp) + duration;
+        uint64 resolutionDeadline = quoteDeadline + 1_800;
+
+        require(_tryCreateRfq(quoteDeadline, resolutionDeadline), "bounded quote window rejected");
+    }
+
+    function testFuzzRejectsEveryTradeQuoteAboveCap(uint96 excessSeed) public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        uint256 excessiveQuote = QUOTE_CAP + 1 + uint256(excessSeed);
+        (bytes memory resultData, bytes memory signature) =
+            _signedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, excessiveQuote);
+
+        (bool accepted,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
+
+        require(!accepted, "over-cap trade accepted");
+        require(!rfq.consumedActionIds(actionId), "rejected action consumed");
+    }
+
+    function testFuzzEveryTradeClaimOrderConservesDeposits(uint8 orderSeed) public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+
+        address[3] memory actors = _claimPermutation(orderSeed % 6);
+        for (uint256 i = 0; i < actors.length; ++i) {
+            vm.prank(actors[i]);
+            rfq.claim(rfqId);
+        }
+
+        (,, uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+            rfq.accounting(rfqId);
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "claim order left entitlements");
+        require(claimedFxrp == LOT, "claim order lost FXRP");
+        require(claimedUsdt0 == 2 * QUOTE_CAP, "claim order lost USDT0");
+    }
+
+    function testGasResolutionWithTwoProviders() public {
+        uint256 rfqId = _createAndQuote();
+        _requestResolution(rfqId);
+    }
+
+    function testGasResolutionWithTwentyProvidersAndMaximumCiphertexts() public {
+        uint256 rfqId = _createRfq();
+        bytes memory maximumCiphertext = new bytes(4_096);
+        _submitQuote(rfqId, PROVIDER_A, maximumCiphertext);
+        for (uint256 i = 0; i < 19; ++i) {
+            address provider = address(uint160(0x2000 + i));
+            usdt0.mint(provider, QUOTE_CAP);
+            vm.prank(provider);
+            usdt0.approve(address(rfq), type(uint256).max);
+            _submitQuote(rfqId, provider, maximumCiphertext);
+        }
+
+        _requestResolution(rfqId);
+    }
+
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
         HushFlowRfq uninitialized =
@@ -207,11 +399,215 @@ contract HushFlowRfqTest {
             address(uninitialized).call(abi.encodeCall(uninitialized.initializeTeeSigner, (teeSigner)));
         require(!initializedByOther, "unauthorized signer initialization");
 
+        (bool initializedToZero,) =
+            address(uninitialized).call(abi.encodeCall(uninitialized.initializeTeeSigner, (address(0))));
+        require(!initializedToZero, "zero signer initialized");
+
         uninitialized.initializeTeeSigner(teeSigner);
         require(uninitialized.teeSigner() == teeSigner, "signer was not initialized");
         (bool replaced,) =
             address(uninitialized).call(abi.encodeCall(uninitialized.initializeTeeSigner, (address(0xBADD))));
         require(!replaced, "signer replaced");
+    }
+
+    function testRejectsInvalidCreationAmountsAndCiphertextBounds() public {
+        require(!_tryCreateCustom(0, QUOTE_CAP, hex"01"), "zero lot accepted");
+        require(!_tryCreateCustom(LOT, 0, hex"01"), "zero quote cap accepted");
+        require(!_tryCreateCustom(LOT, QUOTE_CAP, hex""), "empty ciphertext accepted");
+        require(!_tryCreateCustom(LOT, QUOTE_CAP, new bytes(4_097)), "oversized ciphertext accepted");
+        require(_tryCreateCustom(LOT, QUOTE_CAP, new bytes(4_096)), "maximum ciphertext rejected");
+    }
+
+    function testRejectsSellerQuoteAndQuoteAtDeadline() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(SELLER);
+        (bool sellerQuoted,) = address(rfq).call(abi.encodeCall(rfq.submitQuote, (rfqId, hex"02")));
+        require(!sellerQuoted, "seller quote accepted");
+
+        vm.warp(QUOTE_DEADLINE);
+        vm.prank(PROVIDER_A);
+        (bool lateQuote,) = address(rfq).call(abi.encodeCall(rfq.submitQuote, (rfqId, hex"02")));
+        require(!lateQuote, "quote at deadline accepted");
+    }
+
+    function testResolutionRequiresWindowAndSingleNonzeroInstruction() public {
+        uint256 rfqId = _createRfq();
+
+        (bool earlyRequest,) = address(rfq).call{value: 1}(abi.encodeCall(rfq.requestResolution, (rfqId)));
+        require(!earlyRequest, "early resolution accepted");
+
+        vm.warp(QUOTE_DEADLINE);
+        rfq.requestResolution{value: 1}(rfqId);
+        (bool duplicateRequest,) = address(rfq).call{value: 1}(abi.encodeCall(rfq.requestResolution, (rfqId)));
+        require(!duplicateRequest, "duplicate resolution accepted");
+
+        vm.warp(RESOLUTION_DEADLINE + 1);
+        (bool lateRequest,) = address(rfq).call{value: 1}(abi.encodeCall(rfq.requestResolution, (rfqId)));
+        require(!lateRequest, "late resolution accepted");
+    }
+
+    function testRejectsZeroInstructionIdWithoutRecordingRequest() public {
+        uint256 rfqId = _createRfq();
+        teeRegistry.setNextInstructionId(bytes32(0));
+        vm.warp(QUOTE_DEADLINE);
+
+        (bool requested,) = address(rfq).call{value: 1}(abi.encodeCall(rfq.requestResolution, (rfqId)));
+
+        require(!requested, "zero instruction id accepted");
+        (,,,,,,,, bytes32 actionId) = rfq.rfqs(rfqId);
+        require(actionId == bytes32(0), "zero action request recorded");
+    }
+
+    function testResultRequiresRequestAndBothTimeWindows() public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = bytes32(uint256(0xA11CE));
+        vm.warp(QUOTE_DEADLINE);
+        (bytes memory resultData, bytes memory signature) =
+            _signedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+        (bool withoutRequest,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
+        require(!withoutRequest, "unrequested result accepted");
+
+        rfq.requestResolution{value: 1}(rfqId);
+        vm.warp(QUOTE_DEADLINE - 1);
+        (bool beforeQuoteDeadline,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
+        require(!beforeQuoteDeadline, "result before quote deadline accepted");
+
+        vm.warp(RESOLUTION_DEADLINE + 1);
+        (bool afterResolutionDeadline,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
+        require(!afterResolutionDeadline, "result after resolution deadline accepted");
+    }
+
+    function testTimeoutRequiresDeadlineAndIsTerminal() public {
+        uint256 rfqId = _createRfq();
+        (bool earlyTimeout,) = address(rfq).call(abi.encodeCall(rfq.timeoutRfq, (rfqId)));
+        require(!earlyTimeout, "early timeout accepted");
+
+        vm.warp(RESOLUTION_DEADLINE + 1);
+        rfq.timeoutRfq(rfqId);
+        (bool repeatedTimeout,) = address(rfq).call(abi.encodeCall(rfq.timeoutRfq, (rfqId)));
+        require(!repeatedTimeout, "timeout repeated");
+    }
+
+    function testClaimsRejectOpenUnrelatedAndRepeatedAccounts() public {
+        uint256 rfqId = _createRfq();
+        vm.prank(SELLER);
+        (bool openClaim,) = address(rfq).call(abi.encodeCall(rfq.claim, (rfqId)));
+        require(!openClaim, "open RFQ claim accepted");
+
+        vm.prank(SELLER);
+        rfq.cancelRfq(rfqId);
+        vm.prank(address(0xBAD));
+        (bool unrelatedClaim,) = address(rfq).call(abi.encodeCall(rfq.claim, (rfqId)));
+        require(!unrelatedClaim, "unrelated claim accepted");
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+        vm.prank(SELLER);
+        (bool repeatedClaim,) = address(rfq).call(abi.encodeCall(rfq.claim, (rfqId)));
+        require(!repeatedClaim, "repeated claim accepted");
+    }
+
+    function testConfigurationAndViewHelpersExposeCanonicalState() public {
+        require(rfq.extensionId() == 0x10000, "extension id");
+        (bool resetExtension,) = address(rfq).call(abi.encodeCall(rfq.setExtensionId, ()));
+        require(!resetExtension, "extension id reset");
+
+        uint256 rfqId = _createAndQuote();
+        require(keccak256(rfq.sellerCiphertext(rfqId)) == keccak256(hex"01"), "seller ciphertext");
+        address[] memory providerList = rfq.providers(rfqId);
+        require(providerList.length == 2 && providerList[0] == PROVIDER_A && providerList[1] == PROVIDER_B, "providers");
+        require(keccak256(rfq.quoteCiphertext(rfqId, PROVIDER_A)) == keccak256(hex"02"), "quote ciphertext");
+
+        (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        ) = rfq.accounting(type(uint256).max);
+        require(
+            depositedFxrp == 0 && depositedUsdt0 == 0 && claimableFxrp == 0 && claimableUsdt0 == 0 && claimedFxrp == 0
+                && claimedUsdt0 == 0,
+            "unknown RFQ accounting"
+        );
+    }
+
+    function testSellerCancelsBeforeQuotesAndClaimsFullLot() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(SELLER);
+        rfq.cancelRfq(rfqId);
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+
+        require(fxrp.balanceOf(SELLER) == LOT, "seller cancellation refund");
+        require(fxrp.balanceOf(address(rfq)) == 0, "cancelled lot remains escrowed");
+    }
+
+    function testOnlySellerCanCancel() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(PROVIDER_A);
+        (bool cancelled,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelled, "non-seller cancelled RFQ");
+    }
+
+    function testSellerCannotCancelAfterFirstQuote() public {
+        uint256 rfqId = _createRfq();
+        _submitQuote(rfqId, PROVIDER_A, hex"02");
+
+        vm.prank(SELLER);
+        (bool cancelled,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelled, "RFQ cancelled after quote");
+    }
+
+    function testCancellationIsTerminal() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(SELLER);
+        rfq.cancelRfq(rfqId);
+        vm.prank(SELLER);
+        (bool cancelledAgain,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelledAgain, "RFQ cancelled twice");
+    }
+
+    function testRejectsQuoteWindowBelowOneMinute() public {
+        bool created = _tryCreateRfq(1_059, 2_859);
+        require(!created, "sub-minute quote window accepted");
+    }
+
+    function testAcceptsQuoteWindowAtOneMinuteBoundary() public {
+        bool created = _tryCreateRfq(1_060, 2_860);
+        require(created, "one-minute quote window rejected");
+    }
+
+    function testAcceptsQuoteWindowAtTwentyFourHourBoundary() public {
+        bool created = _tryCreateRfq(87_400, 89_200);
+        require(created, "24-hour quote window rejected");
+    }
+
+    function testRejectsQuoteWindowAboveTwentyFourHours() public {
+        bool created = _tryCreateRfq(87_401, 89_201);
+        require(!created, "quote window above 24 hours accepted");
+    }
+
+    function testRejectsNonCanonicalResolutionDeadline() public {
+        bool created = _tryCreateRfq(QUOTE_DEADLINE, RESOLUTION_DEADLINE - 1);
+        require(!created, "noncanonical resolution deadline accepted");
+    }
+
+    function testRejectsQuoteDeadlineAtCurrentTimestamp() public {
+        bool created = _tryCreateRfq(uint64(block.timestamp), uint64(block.timestamp + 1_800));
+        require(!created, "current timestamp quote deadline accepted");
     }
 
     function testNoValidQuoteRefundsEveryDeposit() public {
@@ -304,6 +700,28 @@ contract HushFlowRfqTest {
         require(!replay, "result replay accepted");
     }
 
+    function testRejectsConsumedActionIdReusedAcrossRfqs() public {
+        uint256 firstRfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(firstRfqId);
+        _submitSignedResult(firstRfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+
+        vm.warp(1_000);
+        fxrp.mint(SELLER, LOT);
+        usdt0.mint(PROVIDER_A, QUOTE_CAP);
+        usdt0.mint(PROVIDER_B, QUOTE_CAP);
+        uint256 secondRfqId = _createAndQuote();
+        vm.warp(QUOTE_DEADLINE);
+        bytes32 repeatedActionId = rfq.requestResolution{value: 1 ether}(secondRfqId);
+        require(repeatedActionId == actionId, "test registry did not reuse action id");
+        (bytes memory resultData, bytes memory signature) = _signedResult(
+            secondRfqId, repeatedActionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE
+        );
+
+        (bool accepted,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, repeatedActionId, "submit", 1, signature)));
+        require(!accepted, "consumed action id reused across RFQs");
+    }
+
     function testResolutionRequestCannotBeReentered() public {
         ReentrantTeeRegistry reentrantRegistry = new ReentrantTeeRegistry();
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
@@ -334,6 +752,52 @@ contract HushFlowRfqTest {
     function _createRfq() internal returns (uint256 rfqId) {
         vm.prank(SELLER);
         rfqId = rfq.createRfq(LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01");
+    }
+
+    function _tryCreateRfq(uint64 quoteDeadline, uint64 resolutionDeadline) internal returns (bool created) {
+        vm.prank(SELLER);
+        (created,) = address(rfq)
+            .call(abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01")));
+    }
+
+    function _tryCreateCustom(uint256 lotAmount, uint256 quoteCap, bytes memory ciphertext)
+        internal
+        returns (bool created)
+    {
+        vm.prank(SELLER);
+        (created,) = address(rfq)
+            .call(abi.encodeCall(rfq.createRfq, (lotAmount, quoteCap, QUOTE_DEADLINE, RESOLUTION_DEADLINE, ciphertext)));
+    }
+
+    function _adversarialRfq()
+        internal
+        returns (AdversarialToken adversarial, MockToken quoteToken, HushFlowRfq target)
+    {
+        adversarial = new AdversarialToken();
+        quoteToken = new MockToken("USDT0", "USDT0");
+        MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
+        target = new HushFlowRfq(address(adversarial), address(quoteToken), teeRegistry, machineRegistry, teeSigner);
+        teeRegistry.setInstructionSender(address(target));
+        target.setExtensionId();
+
+        adversarial.mint(SELLER, LOT);
+        vm.prank(SELLER);
+        adversarial.approve(address(target), type(uint256).max);
+    }
+
+    function _tryCreateOn(HushFlowRfq target) internal returns (bool created) {
+        vm.prank(SELLER);
+        (created,) = address(target)
+            .call(abi.encodeCall(target.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01")));
+    }
+
+    function _claimPermutation(uint8 permutation) internal pure returns (address[3] memory actors) {
+        if (permutation == 0) return [SELLER, PROVIDER_A, PROVIDER_B];
+        if (permutation == 1) return [SELLER, PROVIDER_B, PROVIDER_A];
+        if (permutation == 2) return [PROVIDER_A, SELLER, PROVIDER_B];
+        if (permutation == 3) return [PROVIDER_A, PROVIDER_B, SELLER];
+        if (permutation == 4) return [PROVIDER_B, SELLER, PROVIDER_A];
+        return [PROVIDER_B, PROVIDER_A, SELLER];
     }
 
     function _submitQuote(uint256 rfqId, address provider, bytes memory ciphertext) internal {

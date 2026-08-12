@@ -14,6 +14,9 @@ contract HushFlowRfq is ReentrancyGuard {
 
     uint256 public constant MAX_PROVIDERS = 20;
     uint256 public constant MAX_CIPHERTEXT_BYTES = 4_096;
+    uint256 public constant MIN_QUOTE_DURATION = 1 minutes;
+    uint256 public constant MAX_QUOTE_DURATION = 24 hours;
+    uint256 public constant RESOLUTION_DURATION = 30 minutes;
     uint256 private constant FIRST_PUBLIC_EXTENSION_ID = 0x10000;
     bytes32 public constant OP_TYPE_HUSHFLOW = bytes32("HUSHFLOW");
     bytes32 public constant OP_COMMAND_RESOLVE_RFQ = bytes32("RESOLVE_RFQ");
@@ -55,6 +58,8 @@ contract HushFlowRfq is ReentrancyGuard {
     mapping(uint256 => mapping(address => bool)) public participated;
     mapping(uint256 => mapping(address => bytes)) private _quoteCiphertexts;
     mapping(uint256 => mapping(address => bool)) public claimed;
+    mapping(uint256 => uint256) private _claimedFxrp;
+    mapping(uint256 => uint256) private _claimedUsdt0;
     mapping(bytes32 => bool) public consumedActionIds;
     mapping(bytes32 => bool) public consumedResultNonces;
 
@@ -75,6 +80,8 @@ contract HushFlowRfq is ReentrancyGuard {
     error ResolutionWindowClosed(uint256 deadline, uint256 currentTimestamp);
     error ResolutionWindowStillOpen(uint256 deadline, uint256 currentTimestamp);
     error SellerCannotQuote();
+    error UnauthorizedCancellation(address caller);
+    error QuotesAlreadySubmitted();
     error DuplicateQuote();
     error ProviderLimitReached();
     error ResolutionAlreadyRequested();
@@ -100,6 +107,7 @@ contract HushFlowRfq is ReentrancyGuard {
         bytes sellerCiphertext
     );
     event QuoteSubmitted(uint256 indexed rfqId, address indexed provider, bytes ciphertext);
+    event RfqCancelled(uint256 indexed rfqId);
     event ResolutionRequested(uint256 indexed rfqId, bytes32 indexed actionId);
     event RfqFinalized(
         uint256 indexed rfqId,
@@ -173,7 +181,12 @@ contract HushFlowRfq is ReentrancyGuard {
         if (_extensionId == 0) revert ExtensionNotInitialized();
         if (teeSigner == address(0)) revert TeeSignerNotInitialized();
         if (lotAmount == 0 || quoteCap == 0) revert InvalidAmount();
-        if (quoteDeadline <= block.timestamp || resolutionDeadline <= quoteDeadline) revert InvalidDeadlines();
+        if (quoteDeadline <= block.timestamp) revert InvalidDeadlines();
+        uint256 quoteDuration = uint256(quoteDeadline) - block.timestamp;
+        if (
+            quoteDuration < MIN_QUOTE_DURATION || quoteDuration > MAX_QUOTE_DURATION
+                || uint256(resolutionDeadline) != uint256(quoteDeadline) + RESOLUTION_DURATION
+        ) revert InvalidDeadlines();
         _validateCiphertext(encryptedSellerMinimum);
 
         rfqId = nextRfqId++;
@@ -210,6 +223,15 @@ contract HushFlowRfq is ReentrancyGuard {
         _pullExact(USDT0, msg.sender, rfq.quoteCap);
 
         emit QuoteSubmitted(rfqId, msg.sender, ciphertext);
+    }
+
+    function cancelRfq(uint256 rfqId) external {
+        Rfq storage rfq = _openRfq(rfqId);
+        if (msg.sender != rfq.seller) revert UnauthorizedCancellation(msg.sender);
+        if (_providers[rfqId].length != 0) revert QuotesAlreadySubmitted();
+
+        rfq.status = Status.CANCELLED;
+        emit RfqCancelled(rfqId);
     }
 
     function requestResolution(uint256 rfqId) external payable nonReentrant returns (bytes32 actionId) {
@@ -305,6 +327,8 @@ contract HushFlowRfq is ReentrancyGuard {
         if (fxrpAmount == 0 && usdtAmount == 0) revert NothingToClaim();
 
         claimed[rfqId][msg.sender] = true;
+        _claimedFxrp[rfqId] += fxrpAmount;
+        _claimedUsdt0[rfqId] += usdtAmount;
         if (fxrpAmount != 0) IERC20(fxrpToken).safeTransfer(msg.sender, fxrpAmount);
         if (usdtAmount != 0) IERC20(usdtToken).safeTransfer(msg.sender, usdtAmount);
         emit Claimed(rfqId, msg.sender, fxrpAmount, usdtAmount);
@@ -333,6 +357,32 @@ contract HushFlowRfq is ReentrancyGuard {
         } else {
             if (isSeller) fxrpAmount = rfq.lotAmount;
             if (isProvider) usdtAmount = rfq.quoteCap;
+        }
+    }
+
+    function accounting(uint256 rfqId)
+        external
+        view
+        returns (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        )
+    {
+        Rfq storage rfq = rfqs[rfqId];
+        if (rfq.seller == address(0)) return (0, 0, 0, 0, 0, 0);
+
+        depositedFxrp = rfq.lotAmount;
+        depositedUsdt0 = _providers[rfqId].length * rfq.quoteCap;
+        claimedFxrp = _claimedFxrp[rfqId];
+        claimedUsdt0 = _claimedUsdt0[rfqId];
+
+        if (rfq.status != Status.OPEN) {
+            claimableFxrp = depositedFxrp - claimedFxrp;
+            claimableUsdt0 = depositedUsdt0 - claimedUsdt0;
         }
     }
 
