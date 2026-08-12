@@ -126,7 +126,9 @@ describe("FCC extension HTTP runtime", () => {
       version: "0.1.0",
       data: expect.stringMatching(/^0x/),
     });
-    expect(decodeResultDataV1(result.data as Hex).winningQuote).toBe(97_000_000n);
+    expect(decodeResultDataV1(result.data as Hex).winningQuote).toBe(
+      97_000_000n,
+    );
   });
 
   it("implements state and method/path status contracts", async () => {
@@ -134,13 +136,18 @@ describe("FCC extension HTTP runtime", () => {
 
     expect((await fetch(`${baseUrl}/state`)).status).toBe(200);
     expect((await fetch(`${baseUrl}/action`)).status).toBe(405);
-    expect((await fetch(`${baseUrl}/state`, { method: "POST" })).status).toBe(405);
+    expect((await fetch(`${baseUrl}/state`, { method: "POST" })).status).toBe(
+      405,
+    );
     expect((await fetch(`${baseUrl}/missing`)).status).toBe(404);
   });
 
   it("returns 400 for invalid wire data and 501 for unsupported routing", async () => {
     const baseUrl = await startServer();
-    const invalid = await fetch(`${baseUrl}/action`, { method: "POST", body: "{" });
+    const invalid = await fetch(`${baseUrl}/action`, {
+      method: "POST",
+      body: "{",
+    });
     const unsupported = await fetch(`${baseUrl}/action`, {
       method: "POST",
       headers: { "content-type": "application/json" },
