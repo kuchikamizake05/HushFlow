@@ -123,7 +123,9 @@ describe("Coston2 three-wallet scenario plan", () => {
 
     expect(calls).toEqual(plan.actions.map((action) => action.kind));
     expect(evidence).toHaveLength(plan.actions.length);
-    expect(JSON.stringify(evidence)).not.toMatch(/private|secret|quotePlaintext/i);
+    expect(JSON.stringify(evidence)).not.toMatch(
+      /private|secret|quotePlaintext/i,
+    );
   });
 
   it("stops immediately when an action fails", async () => {
