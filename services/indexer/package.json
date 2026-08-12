@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src/**/*.ts",
+    "start:api": "tsx src/api/main.ts",
+    "start:worker": "tsx src/worker/main.ts",
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -17,6 +19,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/pg": "8.21.0"
+    "@types/pg": "8.21.0",
+    "tsx": "4.23.1"
   }
 }

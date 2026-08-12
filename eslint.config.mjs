@@ -30,4 +30,13 @@ export default tseslint.config(
       "@typescript-eslint/no-misused-promises": "error",
     },
   },
+  {
+    files: ["services/indexer/src/**/*.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "./services/indexer/tsconfig.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
 );
