@@ -12,6 +12,8 @@ Date: 2026-08-12
 - Confidential resolver selection rules: invalid seller payload becomes `INVALID_RFQ`; malformed, misbound, zero, over-cap, and below-minimum provider quotes are ignored; the highest qualifying quote wins; equal quotes preserve submission order.
 - A versioned `RESOLVE_RFQ` instruction ABI is shared by the contract and TypeScript protocol package, including provider ordering and the absolute resolution deadline.
 - The local FCC action adapter accepts only `HUSHFLOW/RESOLVE_RFQ`, decrypts provider envelopes independently, returns canonical ABI result bytes, and does not log plaintext or losing quotes.
+- The FCC HTTP runtime implements the normative `POST /action` and `GET /state` surface, exact ActionResult fields, serialized handler execution, method/path status behavior, and a bounded request body.
+- The tee-node crypto adapter uses base64 on `/decrypt`, parses plaintext envelopes only inside the extension process, generates fresh result nonces, and exposes validated `EXTENSION_PORT`/`SIGN_PORT` runtime configuration.
 - FCC-backed RFQ custody slice: fixed FXRP lot, fixed USDT0 provider collateral, maximum 20 providers, ciphertext-size ceiling, FCC instruction forwarding, action/result replay protection, terminal outcomes, timeout, and pull-based claims.
 - The signer can be supplied at construction or initialized exactly once by the deployer after extension registration. RFQ creation remains blocked until it is set; it cannot be replaced afterward.
 - Exact-transfer accounting rejects unsupported fee-on-transfer token behavior during deposits.
@@ -20,8 +22,8 @@ Date: 2026-08-12
 
 | Gate | Result |
 | --- | --- |
-| TypeScript protocol, resolver, and action-adapter tests | 24 passed |
-| TypeScript coverage | 98.01% statements, 93.18% branches |
+| TypeScript protocol, resolver, action-adapter, HTTP, and crypto tests | 32 passed |
+| TypeScript coverage | 87.28% statements, 85.21% branches |
 | Solidity verifier and RFQ tests | 14 passed |
 | Solidity coverage | 89.50% lines, 85.61% statements |
 | Solidity formatting | passed |
@@ -42,6 +44,9 @@ The Solidity scenarios cover valid trade settlement, `NO_VALID_QUOTE`, `INVALID_
 - `a15bee6` and `881cf14`: versioned FCC resolution instruction RED/GREEN checkpoints.
 - `22afe19` and `11397b4`: confidential FCC action adapter RED/GREEN checkpoints.
 - `d653d32` and `abe8fd7`: FCC instruction reentrancy RED/GREEN checkpoints.
+- `201196f` and `9af0fb3`: FCC HTTP conformance RED/GREEN checkpoints.
+- `8eb17af` and `eef65b3`: tee-node decrypt wire RED/GREEN checkpoints.
+- `5d825c3` and `61a768c`: runtime configuration RED/GREEN checkpoints.
 
 ## Not yet demonstrated
 
@@ -49,7 +54,7 @@ This document does **not** claim that M1 is live or complete. The following acce
 
 - Read-only C-chain indexer credentials in the extension proxy configuration.
 - A Coston2-only public proxy URL while the guided demo is running.
-- Extension image/container implementation wired to the official FCC scaffold contract and handler interfaces.
+- Two-process container packaging with the exact organizer-supported tee-node pin and reproducible base image. The HushFlow extension process and public wire surface are implemented locally, but a locally invented tee-node pin would not be valid deployment evidence.
 - Coston2 deployment, extension registration, and evidence that the one-time configured signer equals the registered FCC machine signer. Current public registry interface evidence is insufficient to prove that binding in-contract, so this must be demonstrated in deployment evidence before activation.
 - Encrypted payload submission with the live extension public key and signed-result relay.
 - Real Coston2 transaction hashes for trade, no-valid-quote, invalid-RFQ, replay/stale rejection, timeout, and claims.

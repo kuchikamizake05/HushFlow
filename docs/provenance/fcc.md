@@ -8,10 +8,16 @@ Reviewed: 2026-07-22
   https://dev.flare.network/fcc/guides/weather-insurance-extension
 - Flare FCC private-key extension:
   https://dev.flare.network/fcc/guides/sign-extension
+- Flare FCC build-your-first-extension guide:
+  https://dev.flare.network/fcc/guides/getting-started
+- Normative extension container contract published with the official scaffold:
+  https://github.com/flare-foundation/fce-extension-scaffold/blob/main/docs/extension-contract.md
 - Flare Coston2 network configuration:
   https://dev.flare.network/network/overview
 
 Documentation is used to understand public interfaces, deployment order, ActionResult signing, and Coston2 requirements.
+
+The HushFlow HTTP and tee-node crypto adapters were independently implemented from the normative wire requirements above. No framework source file from the unlicensed reference repositories was copied or adapted.
 
 ## Reference repositories
 
