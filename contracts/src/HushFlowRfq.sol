@@ -58,6 +58,8 @@ contract HushFlowRfq is ReentrancyGuard {
     mapping(uint256 => mapping(address => bool)) public participated;
     mapping(uint256 => mapping(address => bytes)) private _quoteCiphertexts;
     mapping(uint256 => mapping(address => bool)) public claimed;
+    mapping(uint256 => uint256) private _claimedFxrp;
+    mapping(uint256 => uint256) private _claimedUsdt0;
     mapping(bytes32 => bool) public consumedActionIds;
     mapping(bytes32 => bool) public consumedResultNonces;
 
@@ -325,6 +327,8 @@ contract HushFlowRfq is ReentrancyGuard {
         if (fxrpAmount == 0 && usdtAmount == 0) revert NothingToClaim();
 
         claimed[rfqId][msg.sender] = true;
+        _claimedFxrp[rfqId] += fxrpAmount;
+        _claimedUsdt0[rfqId] += usdtAmount;
         if (fxrpAmount != 0) IERC20(fxrpToken).safeTransfer(msg.sender, fxrpAmount);
         if (usdtAmount != 0) IERC20(usdtToken).safeTransfer(msg.sender, usdtAmount);
         emit Claimed(rfqId, msg.sender, fxrpAmount, usdtAmount);
@@ -353,6 +357,32 @@ contract HushFlowRfq is ReentrancyGuard {
         } else {
             if (isSeller) fxrpAmount = rfq.lotAmount;
             if (isProvider) usdtAmount = rfq.quoteCap;
+        }
+    }
+
+    function accounting(uint256 rfqId)
+        external
+        view
+        returns (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        )
+    {
+        Rfq storage rfq = rfqs[rfqId];
+        if (rfq.seller == address(0)) return (0, 0, 0, 0, 0, 0);
+
+        depositedFxrp = rfq.lotAmount;
+        depositedUsdt0 = _providers[rfqId].length * rfq.quoteCap;
+        claimedFxrp = _claimedFxrp[rfqId];
+        claimedUsdt0 = _claimedUsdt0[rfqId];
+
+        if (rfq.status != Status.OPEN) {
+            claimableFxrp = depositedFxrp - claimedFxrp;
+            claimableUsdt0 = depositedUsdt0 - claimedUsdt0;
         }
     }
 
