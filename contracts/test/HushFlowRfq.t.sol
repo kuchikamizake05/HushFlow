@@ -135,7 +135,7 @@ contract HushFlowRfqTest {
     uint256 internal constant QUOTE_CAP = 120_000_000;
     uint256 internal constant WINNING_QUOTE = 97_000_000;
     uint64 internal constant QUOTE_DEADLINE = 2_000;
-    uint64 internal constant RESOLUTION_DEADLINE = 3_000;
+    uint64 internal constant RESOLUTION_DEADLINE = 3_800;
 
     MockToken internal fxrp;
     MockToken internal usdt0;
@@ -255,6 +255,31 @@ contract HushFlowRfqTest {
         (bool cancelledAgain,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
 
         require(!cancelledAgain, "RFQ cancelled twice");
+    }
+
+    function testRejectsQuoteWindowBelowOneMinute() public {
+        bool created = _tryCreateRfq(1_059, 2_859);
+        require(!created, "sub-minute quote window accepted");
+    }
+
+    function testAcceptsQuoteWindowAtOneMinuteBoundary() public {
+        bool created = _tryCreateRfq(1_060, 2_860);
+        require(created, "one-minute quote window rejected");
+    }
+
+    function testAcceptsQuoteWindowAtTwentyFourHourBoundary() public {
+        bool created = _tryCreateRfq(87_400, 89_200);
+        require(created, "24-hour quote window rejected");
+    }
+
+    function testRejectsQuoteWindowAboveTwentyFourHours() public {
+        bool created = _tryCreateRfq(87_401, 89_201);
+        require(!created, "quote window above 24 hours accepted");
+    }
+
+    function testRejectsNonCanonicalResolutionDeadline() public {
+        bool created = _tryCreateRfq(QUOTE_DEADLINE, RESOLUTION_DEADLINE - 1);
+        require(!created, "noncanonical resolution deadline accepted");
     }
 
     function testNoValidQuoteRefundsEveryDeposit() public {
@@ -377,6 +402,13 @@ contract HushFlowRfqTest {
     function _createRfq() internal returns (uint256 rfqId) {
         vm.prank(SELLER);
         rfqId = rfq.createRfq(LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01");
+    }
+
+    function _tryCreateRfq(uint64 quoteDeadline, uint64 resolutionDeadline) internal returns (bool created) {
+        vm.prank(SELLER);
+        (created,) = address(rfq).call(
+            abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01"))
+        );
     }
 
     function _submitQuote(uint256 rfqId, address provider, bytes memory ciphertext) internal {
