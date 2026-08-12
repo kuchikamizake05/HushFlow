@@ -214,6 +214,49 @@ contract HushFlowRfqTest {
         require(!replaced, "signer replaced");
     }
 
+    function testSellerCancelsBeforeQuotesAndClaimsFullLot() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(SELLER);
+        rfq.cancelRfq(rfqId);
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+
+        require(fxrp.balanceOf(SELLER) == LOT, "seller cancellation refund");
+        require(fxrp.balanceOf(address(rfq)) == 0, "cancelled lot remains escrowed");
+    }
+
+    function testOnlySellerCanCancel() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(PROVIDER_A);
+        (bool cancelled,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelled, "non-seller cancelled RFQ");
+    }
+
+    function testSellerCannotCancelAfterFirstQuote() public {
+        uint256 rfqId = _createRfq();
+        _submitQuote(rfqId, PROVIDER_A, hex"02");
+
+        vm.prank(SELLER);
+        (bool cancelled,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelled, "RFQ cancelled after quote");
+    }
+
+    function testCancellationIsTerminal() public {
+        uint256 rfqId = _createRfq();
+
+        vm.prank(SELLER);
+        rfq.cancelRfq(rfqId);
+        vm.prank(SELLER);
+        (bool cancelledAgain,) = address(rfq).call(abi.encodeWithSignature("cancelRfq(uint256)", rfqId));
+
+        require(!cancelledAgain, "RFQ cancelled twice");
+    }
+
     function testNoValidQuoteRefundsEveryDeposit() public {
         uint256 rfqId = _createAndQuote();
         bytes32 actionId = _requestResolution(rfqId);
