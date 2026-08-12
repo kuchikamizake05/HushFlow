@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "generator": "hushflow-m3-event-fixture-v1",
+  "logs": [
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123456",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 0,
+      "topics": [
+        "0x64bfc1c775078bcf7759f08f5fb90f88fc2449e797814587e4e98db42a9bfc86",
+        "0x0000000000000000000000000000000000000000000000000000000000000007"
+      ],
+      "data": "0x",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123456",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 0,
+        "eventName": "ExtensionIdInitialized",
+        "args": { "extensionId": "7" }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123457",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 1,
+      "topics": [
+        "0x583bd891b87c7afa7effcf13eaa31374d666c10ab57f6dc81926da50d778bd11",
+        "0x0000000000000000000000001111111111111111111111111111111111111111"
+      ],
+      "data": "0x",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123457",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 1,
+        "eventName": "TeeSignerInitialized",
+        "args": { "teeSigner": "0x1111111111111111111111111111111111111111" }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123458",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 2,
+      "topics": [
+        "0x969fd0b86314cb7b1d3e122521e1269c6960fc2a5a20eab6e72314653b926d65",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x0000000000000000000000001111111111111111111111111111111111111111"
+      ],
+      "data": "0x00000000000000000000000000000000000000000000000000000000000f424000000000000000000000000000000000000000000000000000000000002625a0000000000000000000000000000000000000000000000000000000006553f164000000000000000000000000000000000000000000000000000000006553f86c00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000021234000000000000000000000000000000000000000000000000000000000000",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123458",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 2,
+        "eventName": "RfqCreated",
+        "args": {
+          "rfqId": "1",
+          "seller": "0x1111111111111111111111111111111111111111",
+          "lotAmount": "1000000",
+          "quoteCap": "2500000",
+          "quoteDeadline": "1700000100",
+          "resolutionDeadline": "1700001900",
+          "sellerCiphertext": "0x1234"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123459",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 3,
+      "topics": [
+        "0x20b53ba45fb3ddd71364f8677a58d7b5c8b8cba501b089a4fe51943a98fa982b",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x0000000000000000000000002222222222222222222222222222222222222222"
+      ],
+      "data": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002abcd000000000000000000000000000000000000000000000000000000000000",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123459",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 3,
+        "eventName": "QuoteSubmitted",
+        "args": {
+          "rfqId": "1",
+          "provider": "0x2222222222222222222222222222222222222222",
+          "ciphertext": "0xabcd"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123460",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 4,
+      "topics": [
+        "0x4fdeec78ef114a44a7a0f68c0c8de49e2b0cd566cdac007230f8c5fa5bdb4fcd",
+        "0x0000000000000000000000000000000000000000000000000000000000000002"
+      ],
+      "data": "0x",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123460",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 4,
+        "eventName": "RfqCancelled",
+        "args": { "rfqId": "2" }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123461",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 5,
+      "topics": [
+        "0xc92f993487c6d961b60ff2a81386dff5cc620cd4aed9cddabe26500391655e82",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      ],
+      "data": "0x",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123461",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 5,
+        "eventName": "ResolutionRequested",
+        "args": {
+          "rfqId": "1",
+          "actionId": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123462",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 6,
+      "topics": [
+        "0xd57809dc45e183d13cda8d58695824bf47d9f85031da66a4ea22c0aaeed7bba2",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x0000000000000000000000002222222222222222222222222222222222222222",
+        "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "data": "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000249f00",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123462",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 6,
+        "eventName": "RfqFinalized",
+        "args": {
+          "rfqId": "1",
+          "status": "1",
+          "winningProvider": "0x2222222222222222222222222222222222222222",
+          "winningQuote": "2400000",
+          "resultNonce": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123463",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 7,
+      "topics": [
+        "0x59e21e34ded37438a65e465fd9af44121bdef919795ef520ccce74db9cbfb788",
+        "0x0000000000000000000000000000000000000000000000000000000000000003"
+      ],
+      "data": "0x",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123463",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 7,
+        "eventName": "RfqTimedOut",
+        "args": { "rfqId": "3" }
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "chainId": 114,
+      "address": "0x9999999999999999999999999999999999999999",
+      "blockNumber": "123464",
+      "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "logIndex": 8,
+      "topics": [
+        "0xd9cb1e2714d65a111c0f20f060176ad657496bd47a3de04ec7c3d4ca232112ac",
+        "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "0x0000000000000000000000001111111111111111111111111111111111111111"
+      ],
+      "data": "0x00000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000000000249f00",
+      "expected": {
+        "schemaVersion": 1,
+        "chainId": 114,
+        "contractAddress": "0x9999999999999999999999999999999999999999",
+        "blockNumber": "123464",
+        "transactionHash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "logIndex": 8,
+        "eventName": "Claimed",
+        "args": {
+          "rfqId": "1",
+          "account": "0x1111111111111111111111111111111111111111",
+          "fxrpAmount": "1000000",
+          "usdt0Amount": "2400000"
+        }
+      }
+    }
+  ]
+}
