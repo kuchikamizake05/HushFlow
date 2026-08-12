@@ -4,10 +4,10 @@ import {
   type ResultDataV1,
   type ResultType,
 } from "@hushflow/protocol/fcc";
+import { MAX_PROVIDERS } from "@hushflow/protocol/constants";
 import { getAddress, type Address } from "viem";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const MAX_PROVIDERS = 20;
 
 export interface ProviderSubmissionV1 {
   address: string;

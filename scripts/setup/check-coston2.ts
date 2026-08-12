@@ -1,3 +1,4 @@
+import { COSTON2_CHAIN_ID } from "../../packages/protocol/src/constants.js";
 import {
   createPublicClient,
   getAddress,
@@ -7,7 +8,6 @@ import {
 } from "viem";
 import { z } from "zod";
 
-const COSTON2_CHAIN_ID = 114;
 const DEFAULT_RPC_URL = "https://coston2-api.flare.network/ext/C/rpc";
 const DOCUMENTED_ASSET_MANAGER = "0xc1Ca88b937d0b528842F95d5731ffB586f4fbDFA";
 const EXPLORER_USDT0_CANDIDATE = "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F";

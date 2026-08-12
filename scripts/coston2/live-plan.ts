@@ -1,6 +1,5 @@
+import { COSTON2_CHAIN_ID } from "../../packages/protocol/src/constants.js";
 import { getAddress, type Address } from "viem";
-
-const COSTON2_CHAIN_ID = 114;
 
 const requiredAddress = (
   environment: Record<string, string | undefined>,
