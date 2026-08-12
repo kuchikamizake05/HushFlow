@@ -38,3 +38,9 @@ export async function createMigratedPool(databaseUrl: string) {
 export function getMigrationDirectory(): string {
   return fileURLToPath(new URL("../migrations", import.meta.url));
 }
+
+export function getDefaultFixturePath(): string {
+  return fileURLToPath(
+    new URL("../../../packages/protocol/fixtures/v1/events.json", import.meta.url),
+  );
+}
