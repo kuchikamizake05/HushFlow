@@ -8,22 +8,29 @@ const servers: Array<ReturnType<typeof createReadApiServer>> = [];
 
 afterEach(async () => {
   await Promise.all(
-    servers.splice(0).map(
-      (server) =>
-        new Promise<void>((resolve, reject) =>
-          server.close((error) => (error ? reject(error) : resolve())),
-        ),
-    ),
+    servers
+      .splice(0)
+      .map(
+        (server) =>
+          new Promise<void>((resolve, reject) =>
+            server.close((error) => (error ? reject(error) : resolve())),
+          ),
+      ),
   );
 });
 
 describe("Node read API server adapter", () => {
   it("serves Fetch responses over a real local HTTP socket", async () => {
     const server = createReadApiServer(async (request) =>
-      Response.json({ method: request.method, path: new URL(request.url).pathname }),
+      Response.json({
+        method: request.method,
+        path: new URL(request.url).pathname,
+      }),
     );
     servers.push(server);
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
     const { port } = server.address() as AddressInfo;
 
     const response = await fetch(`http://127.0.0.1:${port}/health`);
@@ -37,7 +44,9 @@ describe("Node read API server adapter", () => {
       throw new Error("PRIVATE_MARKER_42");
     });
     servers.push(server);
-    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
     const { port } = server.address() as AddressInfo;
 
     const response = await fetch(`http://127.0.0.1:${port}/stats`);
