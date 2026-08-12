@@ -25,7 +25,14 @@ const decimalBlockSchema = z
 
 const timestampSchema = z.iso.datetime({ offset: true });
 
-const contractsSchema = z.strictObject({
+const pendingContractsSchema = z.strictObject({
+  fxrp: addressSchema.optional(),
+  usdt0: addressSchema.optional(),
+  teeExtensionRegistry: addressSchema.optional(),
+  teeMachineRegistry: addressSchema.optional(),
+});
+
+const liveContractsSchema = z.strictObject({
   fxrp: addressSchema,
   usdt0: addressSchema,
   teeExtensionRegistry: addressSchema,
@@ -42,7 +49,6 @@ const commonManifest = {
     .refine((value) => value.startsWith("https://"), "HTTPS_ONLY"),
   abiHash: hashSchema,
   generatedAt: timestampSchema,
-  contracts: contractsSchema,
 };
 
 export const deploymentBlockingReasons = [
@@ -56,11 +62,13 @@ const pendingDeploymentSchema = z.strictObject({
   ...commonManifest,
   status: z.literal("pending"),
   blockingReason: z.enum(deploymentBlockingReasons),
+  contracts: pendingContractsSchema,
 });
 
 const liveDeploymentSchema = z.strictObject({
   ...commonManifest,
   status: z.literal("live"),
+  contracts: liveContractsSchema,
   deployedAt: timestampSchema,
   hushFlowRfq: addressSchema,
   extensionId: hashSchema,

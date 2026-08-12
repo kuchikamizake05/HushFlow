@@ -9,6 +9,7 @@
     "./amounts": "./src/amounts.ts",
     "./constants": "./src/constants.ts",
     "./deployment": "./src/deployment.ts",
+    "./deployments/coston2": "./src/deployments/coston2.ts",
     "./fcc": "./src/fcc.ts"
   },
   "scripts": {
