@@ -215,6 +215,177 @@ function sortBlocks(blocks: readonly ChainBlock[]): ChainBlock[] {
 export class IndexerStore {
   constructor(private readonly pool: Pool) {}
 
+  async verifyCursor(chainId: number, observed: ChainBlock): Promise<void> {
+    const result = await this.pool.query(
+      `SELECT last_processed_block, last_processed_hash
+         FROM chain_cursor
+        WHERE chain_id = $1`,
+      [chainId],
+    );
+    const cursor = result.rows[0];
+    if (
+      !cursor ||
+      observed.chainId !== chainId ||
+      String(cursor.last_processed_block) !== observed.blockNumber ||
+      String(cursor.last_processed_hash) !== observed.blockHash.toLowerCase()
+    ) {
+      throw new IndexerStoreError("INDEXER_CURSOR_MISMATCH");
+    }
+  }
+
+  async replay(chainId: number): Promise<void> {
+    const client = await this.pool.connect();
+    await client.query("BEGIN");
+    try {
+      await persistProjection(
+        client,
+        chainId,
+        await loadProjection(client, chainId),
+      );
+      await client.query("COMMIT");
+    } catch {
+      await client.query("ROLLBACK");
+      throw new IndexerStoreError("INDEXER_REPLAY_FAILED");
+    } finally {
+      client.release();
+    }
+  }
+
+  async reconcileWindow(
+    chainId: number,
+    canonicalWindow: readonly ChainBlock[],
+  ): Promise<
+    | { reorg: false; ancestorBlock: null }
+    | { reorg: true; ancestorBlock: string }
+  > {
+    const blocks = sortBlocks(canonicalWindow);
+    if (
+      blocks.length === 0 ||
+      blocks.some((block) => block.chainId !== chainId)
+    ) {
+      throw new IndexerStoreError("INDEXER_REORG_WINDOW_INVALID");
+    }
+
+    const client = await this.pool.connect();
+    let replayRequired = false;
+    let outcome:
+      | { reorg: false; ancestorBlock: null }
+      | { reorg: true; ancestorBlock: string } = {
+      reorg: false,
+      ancestorBlock: null,
+    };
+    await client.query("BEGIN");
+    try {
+      const storedResult = await client.query(
+        `SELECT block_number, block_hash
+           FROM chain_blocks
+          WHERE chain_id = $1
+          ORDER BY block_number DESC`,
+        [chainId],
+      );
+      const stored = new Map(
+        storedResult.rows.map((row) => [
+          String(row.block_number),
+          String(row.block_hash),
+        ]),
+      );
+      const overlapping = blocks.filter((block) =>
+        stored.has(block.blockNumber),
+      );
+      const mismatched = overlapping.some(
+        (block) =>
+          stored.get(block.blockNumber) !== block.blockHash.toLowerCase(),
+      );
+
+      if (!mismatched) {
+        await client.query("COMMIT");
+        return outcome;
+      }
+
+      const ancestor = [...overlapping]
+        .reverse()
+        .find(
+          (block) =>
+            stored.get(block.blockNumber) === block.blockHash.toLowerCase(),
+        );
+      const observedBlock = blocks.at(-1)!.blockNumber;
+
+      if (!ancestor) {
+        const cursor = await client.query(
+          `SELECT last_processed_block
+             FROM chain_cursor
+            WHERE chain_id = $1`,
+          [chainId],
+        );
+        const indexedBlock = String(
+          cursor.rows[0]?.last_processed_block ?? observedBlock,
+        );
+        const lag = BigInt(observedBlock) - BigInt(indexedBlock);
+        await client.query(
+          `UPDATE indexer_health SET
+             status = 'degraded',
+             latest_observed_block = $2,
+             lag_blocks = $3,
+             detail_code = 'REORG_REPLAY_REQUIRED',
+             checked_at = NOW()
+           WHERE chain_id = $1`,
+          [chainId, observedBlock, lag > 0n ? lag.toString() : "0"],
+        );
+        await client.query("COMMIT");
+        replayRequired = true;
+      } else {
+        await client.query(
+          `DELETE FROM chain_blocks
+            WHERE chain_id = $1 AND block_number > $2`,
+          [chainId, ancestor.blockNumber],
+        );
+        await persistProjection(
+          client,
+          chainId,
+          await loadProjection(client, chainId),
+        );
+        await client.query(
+          `UPDATE chain_cursor SET
+             last_processed_block = $2,
+             last_processed_hash = $3,
+             updated_at = NOW()
+           WHERE chain_id = $1`,
+          [chainId, ancestor.blockNumber, ancestor.blockHash.toLowerCase()],
+        );
+        const lag = BigInt(observedBlock) - BigInt(ancestor.blockNumber);
+        await client.query(
+          `UPDATE indexer_health SET
+             status = 'degraded',
+             latest_indexed_block = $2,
+             latest_observed_block = $3,
+             lag_blocks = $4,
+             detail_code = 'INDEXER_LAGGING',
+             checked_at = NOW()
+           WHERE chain_id = $1`,
+          [
+            chainId,
+            ancestor.blockNumber,
+            observedBlock,
+            lag > 0n ? lag.toString() : "0",
+          ],
+        );
+        await client.query("COMMIT");
+        outcome = { reorg: true, ancestorBlock: ancestor.blockNumber };
+      }
+    } catch (error) {
+      if (!replayRequired) await client.query("ROLLBACK");
+      if (error instanceof IndexerStoreError) throw error;
+      throw new IndexerStoreError("INDEXER_REORG_FAILED");
+    } finally {
+      client.release();
+    }
+
+    if (replayRequired) {
+      throw new IndexerStoreError("INDEXER_REORG_REPLAY_REQUIRED");
+    }
+    return outcome;
+  }
+
   async ingestBatch(batch: IngestionBatch): Promise<void> {
     const client = await this.pool.connect();
     await client.query("BEGIN");
