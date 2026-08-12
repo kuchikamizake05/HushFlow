@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   ViemChainSource,
+  loadFixtureChainSource,
   type RpcReader,
 } from "../../services/indexer/src/worker/source.js";
 
@@ -97,6 +98,23 @@ describe("ViemChainSource", () => {
     );
     await expect(source.getLogs(1n, 1002n)).rejects.toThrowError(
       "RPC_RANGE_INVALID",
+    );
+  });
+});
+
+describe("fixture chain source", () => {
+  it("loads a coherent continuous local chain from the M3 fixture", async () => {
+    const source = await loadFixtureChainSource(
+      "packages/protocol/fixtures/v1/events.json",
+    );
+
+    expect(source.deploymentBlock).toBe(123458n);
+    expect(await source.getHead()).toBe(123464n);
+    expect(await source.getBlocks(123458n, 123464n)).toHaveLength(7);
+    const logs = await source.getLogs(123458n, 123464n);
+    expect(logs).toHaveLength(5);
+    expect(new Set(logs.map(({ transactionHash }) => transactionHash)).size).toBe(
+      5,
     );
   });
 });
