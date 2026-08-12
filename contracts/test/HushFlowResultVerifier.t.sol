@@ -4,6 +4,12 @@ pragma solidity 0.8.27;
 import {HushFlowResultVerifier} from "../src/HushFlowResultVerifier.sol";
 
 contract HushFlowResultVerifierTest {
+    bytes32 internal constant ACTION_ID = 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;
+    bytes32 internal constant EXPECTED_PAYLOAD_HASH =
+        0x3a85654eec5b68ed9a62197be23be551e83a75854089ee273c6c546f6074f8eb;
+    address internal constant TEE_SIGNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    bytes internal constant TEE_SIGNATURE =
+        hex"6715d3ebdb495f60b2fe159f3f3c892caf3b78ede913b05122f9e2859bae20800d41c5a58866a3c0f3e9690d3736add2ff0acdd31c0ec06439dbe3c5e858e6fb1c";
     bytes internal constant TRADE_RESULT =
         hex"000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000720000000000000000000000001111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000002a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044444444444444444444444444444444444444440000000000000000000000000000000000000000000000000000000005c81a4000000000000000000000000000000000000000000000000000000000713fb42c1000000000000000000000000000000000000000000000000000000000000001";
 
@@ -56,6 +62,37 @@ contract HushFlowResultVerifierTest {
         require(_selector(returned) == HushFlowResultVerifier.InvalidResultDataLength.selector, "wrong error");
     }
 
+    function testVerifiesOfficialActionResultSignatureDomain() public pure {
+        bytes32 payloadHash = HushFlowResultVerifier.verifyActionResult(
+            TRADE_RESULT, ACTION_ID, ACTION_ID, "submit", keccak256("submit"), 1, TEE_SIGNATURE, TEE_SIGNER, 114
+        );
+
+        require(payloadHash == EXPECTED_PAYLOAD_HASH, "payload hash mismatch");
+    }
+
+    function testRejectsActionResultFieldSubstitution() public {
+        _expectActionResultFailure(
+            bytes32(uint256(ACTION_ID) + 1),
+            "submit",
+            1,
+            TEE_SIGNER,
+            114,
+            HushFlowResultVerifier.ActionIdMismatch.selector
+        );
+        _expectActionResultFailure(
+            ACTION_ID, "other", 1, TEE_SIGNER, 114, HushFlowResultVerifier.SubmissionTagMismatch.selector
+        );
+        _expectActionResultFailure(
+            ACTION_ID, "submit", 0, TEE_SIGNER, 114, HushFlowResultVerifier.ActionResultNotSuccessful.selector
+        );
+        _expectActionResultFailure(
+            ACTION_ID, "submit", 1, address(0x1234), 114, HushFlowResultVerifier.InvalidTeeSignature.selector
+        );
+        _expectActionResultFailure(
+            ACTION_ID, "submit", 1, TEE_SIGNER, 115, HushFlowResultVerifier.InvalidTeeSignature.selector
+        );
+    }
+
     function validate(
         HushFlowResultVerifier.ResultDataV1 memory result,
         uint256 expectedChainId,
@@ -70,6 +107,46 @@ contract HushFlowResultVerifierTest {
 
     function decode(bytes memory encoded) external pure returns (HushFlowResultVerifier.ResultDataV1 memory) {
         return HushFlowResultVerifier.decodeResultDataV1(encoded);
+    }
+
+    function verifyActionResult(
+        bytes memory resultData,
+        bytes32 actionId,
+        string memory submissionTag,
+        uint8 status,
+        address teeSigner,
+        uint256 chainId
+    ) external pure returns (bytes32) {
+        return HushFlowResultVerifier.verifyActionResult(
+            resultData,
+            actionId,
+            ACTION_ID,
+            submissionTag,
+            keccak256("submit"),
+            status,
+            TEE_SIGNATURE,
+            teeSigner,
+            chainId
+        );
+    }
+
+    function _expectActionResultFailure(
+        bytes32 actionId,
+        string memory submissionTag,
+        uint8 status,
+        address teeSigner,
+        uint256 chainId,
+        bytes4 expectedError
+    ) private {
+        (bool success, bytes memory returned) = address(this)
+            .call(
+                abi.encodeCall(
+                    this.verifyActionResult, (TRADE_RESULT, actionId, submissionTag, status, teeSigner, chainId)
+                )
+            );
+
+        require(!success, "invalid action result accepted");
+        require(_selector(returned) == expectedError, "wrong action result error");
     }
 
     function _selector(bytes memory returned) private pure returns (bytes4 selector) {
