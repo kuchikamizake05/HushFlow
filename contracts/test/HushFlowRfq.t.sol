@@ -5,6 +5,7 @@ import {HushFlowRfq} from "../src/HushFlowRfq.sol";
 import {HushFlowResultVerifier} from "../src/HushFlowResultVerifier.sol";
 import {ITeeExtensionRegistry} from "../src/interfaces/ITeeExtensionRegistry.sol";
 import {ITeeMachineRegistry} from "../src/interfaces/ITeeMachineRegistry.sol";
+import {AdversarialToken} from "./harness/AdversarialToken.sol";
 
 interface Vm {
     function addr(uint256 privateKey) external returns (address);
@@ -235,6 +236,87 @@ contract HushFlowRfqTest {
         require(claimedUsdt0 == 2 * QUOTE_CAP, "claimed USDT0 conservation");
     }
 
+    function testRejectsFalseReturnDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.FALSE_RETURN);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "false-return deposit accepted");
+        require(target.nextRfqId() == 1, "failed deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "failed deposit retained tokens");
+    }
+
+    function testRejectsRevertingDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.REVERT_CALL);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "reverting deposit accepted");
+        require(target.nextRfqId() == 1, "reverting deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "reverting deposit retained tokens");
+    }
+
+    function testRejectsShortDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.SHORT_TRANSFER);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "short deposit accepted");
+        require(target.nextRfqId() == 1, "short deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "short deposit state did not roll back");
+    }
+
+    function testRejectsBalanceIncreasingDepositWithoutRecordingRfq() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        adversarial.setTransferFromMode(AdversarialToken.Mode.BONUS_TRANSFER);
+
+        bool created = _tryCreateOn(target);
+
+        require(!created, "balance-increasing deposit accepted");
+        require(target.nextRfqId() == 1, "balance-increasing deposit recorded RFQ");
+        require(adversarial.balanceOf(address(target)) == 0, "inflated deposit state did not roll back");
+    }
+
+    function testOutgoingFalseReturnPreservesCancellationEntitlement() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        require(_tryCreateOn(target), "standard deposit failed");
+        vm.prank(SELLER);
+        target.cancelRfq(1);
+        adversarial.setTransferMode(AdversarialToken.Mode.FALSE_RETURN);
+
+        vm.prank(SELLER);
+        (bool claimedSuccessfully,) = address(target).call(abi.encodeCall(target.claim, (1)));
+
+        require(!claimedSuccessfully, "false-return claim succeeded");
+        require(!target.claimed(1, SELLER), "failed claim consumed entitlement");
+        (, , uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        require(claimableFxrp == LOT && claimedFxrp == 0, "failed claim changed accounting");
+
+        adversarial.setTransferMode(AdversarialToken.Mode.STANDARD);
+        vm.prank(SELLER);
+        target.claim(1);
+        require(adversarial.balanceOf(SELLER) == LOT, "restored claim failed");
+    }
+
+    function testRevertingOutgoingTransferPreservesCancellationEntitlement() public {
+        (AdversarialToken adversarial,, HushFlowRfq target) = _adversarialRfq();
+        require(_tryCreateOn(target), "standard deposit failed");
+        vm.prank(SELLER);
+        target.cancelRfq(1);
+        adversarial.setTransferMode(AdversarialToken.Mode.REVERT_CALL);
+
+        vm.prank(SELLER);
+        (bool claimedSuccessfully,) = address(target).call(abi.encodeCall(target.claim, (1)));
+
+        require(!claimedSuccessfully, "reverting claim succeeded");
+        require(!target.claimed(1, SELLER), "reverting claim consumed entitlement");
+        (, , uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        require(claimableFxrp == LOT && claimedFxrp == 0, "reverting claim changed accounting");
+    }
+
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
         HushFlowRfq uninitialized =
@@ -454,6 +536,29 @@ contract HushFlowRfqTest {
         vm.prank(SELLER);
         (created,) = address(rfq).call(
             abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01"))
+        );
+    }
+
+    function _adversarialRfq()
+        internal
+        returns (AdversarialToken adversarial, MockToken quoteToken, HushFlowRfq target)
+    {
+        adversarial = new AdversarialToken();
+        quoteToken = new MockToken("USDT0", "USDT0");
+        MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
+        target = new HushFlowRfq(address(adversarial), address(quoteToken), teeRegistry, machineRegistry, teeSigner);
+        teeRegistry.setInstructionSender(address(target));
+        target.setExtensionId();
+
+        adversarial.mint(SELLER, LOT);
+        vm.prank(SELLER);
+        adversarial.approve(address(target), type(uint256).max);
+    }
+
+    function _tryCreateOn(HushFlowRfq target) internal returns (bool created) {
+        vm.prank(SELLER);
+        (created,) = address(target).call(
+            abi.encodeCall(target.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01"))
         );
     }
 
