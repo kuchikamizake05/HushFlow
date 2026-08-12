@@ -159,6 +159,29 @@ contract HushFlowRfqTest {
         require(fxrp.balanceOf(address(rfq)) == 0 && usdt0.balanceOf(address(rfq)) == 0, "dust");
     }
 
+    function testTeeSignerInitializesOnceBeforeRfqCreation() public {
+        MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
+        HushFlowRfq uninitialized = new HushFlowRfq(
+            address(fxrp), address(usdt0), teeRegistry, machineRegistry, address(0)
+        );
+        teeRegistry.setInstructionSender(address(uninitialized));
+        uninitialized.setExtensionId();
+
+        (bool createdBeforeSigner,) = address(uninitialized).call(
+            abi.encodeCall(
+                uninitialized.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01")
+            )
+        );
+        require(!createdBeforeSigner, "RFQ created without signer");
+
+        uninitialized.initializeTeeSigner(teeSigner);
+        require(uninitialized.teeSigner() == teeSigner, "signer was not initialized");
+        (bool replaced,) = address(uninitialized).call(
+            abi.encodeCall(uninitialized.initializeTeeSigner, (address(0xBADD)))
+        );
+        require(!replaced, "signer replaced");
+    }
+
     function testNoValidQuoteRefundsEveryDeposit() public {
         uint256 rfqId = _createAndQuote();
         bytes32 actionId = _requestResolution(rfqId);
