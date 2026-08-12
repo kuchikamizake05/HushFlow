@@ -143,6 +143,9 @@ contract HushFlowResultVerifierTest {
         _expectActionResultFailure(
             ACTION_ID, "submit", 1, TEE_SIGNER, 115, HushFlowResultVerifier.InvalidTeeSignature.selector
         );
+        _expectActionResultFailure(
+            ACTION_ID, "submit", 1, address(0), 114, HushFlowResultVerifier.InvalidTeeSigner.selector
+        );
     }
 
     function validate(
