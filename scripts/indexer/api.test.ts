@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { coston2Deployment } from "../../packages/protocol/src/deployments/coston2.js";
+import { ReadRepositoryError } from "../../services/indexer/src/api/repository.js";
 import {
   createReadApiHandler,
   type ReadApiRepository,
@@ -160,5 +161,17 @@ describe("M4A read-only HTTP API", () => {
     expect(body).toBe('{"error":"INTERNAL_ERROR"}');
     expect(body).not.toContain("PRIVATE_MARKER_42");
     expect(body).not.toContain("postgresql");
+  });
+
+  it("reports unavailable deployment-dependent reads without inventing data", async () => {
+    const repo = repository();
+    repo.getPortfolio = vi.fn(async () => {
+      throw new ReadRepositoryError("DEPLOYMENT_NOT_LIVE");
+    });
+
+    const response = await invoke(`/wallets/${SELLER}/portfolio`, repo);
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "DEPLOYMENT_NOT_LIVE" });
   });
 });
