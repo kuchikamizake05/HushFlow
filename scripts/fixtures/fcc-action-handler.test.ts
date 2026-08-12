@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Hex } from "viem";
 
 import {
   decodeResultDataV1,
@@ -6,7 +7,10 @@ import {
   type EnvelopeV1,
   type ResolutionInstructionV1,
 } from "../../packages/protocol/src/fcc.js";
-import { handleFccActionV1 } from "../../services/fcc-extension/src/handle-action.js";
+import {
+  handleFccActionV1,
+  type FccActionDependencies,
+} from "../../services/fcc-extension/src/handle-action.js";
 
 const CONTRACT = "0x1111111111111111111111111111111111111111";
 const SELLER = "0x2222222222222222222222222222222222222222";
@@ -50,7 +54,9 @@ function action(message = encodeResolutionInstructionV1(instruction)) {
   return { opType: "HUSHFLOW", opCommand: "RESOLVE_RFQ", message } as const;
 }
 
-function dependencies(overrides: Record<string, unknown> = {}) {
+function dependencies(
+  overrides: Partial<FccActionDependencies> = {},
+): FccActionDependencies {
   const plaintextByCiphertext: Record<string, unknown> = {
     "0xaa": envelope(SELLER, "SELLER_MINIMUM", 94_000_000n, "1"),
     "0xbb": envelope(PROVIDER_A, "PROVIDER_QUOTE", 95_000_000n, "2"),
@@ -58,8 +64,9 @@ function dependencies(overrides: Record<string, unknown> = {}) {
   };
 
   return {
-    createResultNonce: () => RESULT_NONCE,
-    decryptEnvelope: async (ciphertext: string) => plaintextByCiphertext[ciphertext],
+    createResultNonce: () => RESULT_NONCE as Hex,
+    decryptEnvelope: async (ciphertext: Hex) =>
+      plaintextByCiphertext[ciphertext],
     ...overrides,
   };
 }
@@ -72,15 +79,20 @@ describe("FCC HushFlow action handler", () => {
     expect(result.resultType).toBe("TRADE");
     expect(result.winningProvider).toBe(PROVIDER_B);
     expect(result.winningQuote).toBe(97_000_000n);
-    expect(JSON.stringify(result, (_key, value) => (typeof value === "bigint" ? value.toString() : value)))
-      .not.toContain("95000000");
+    expect(
+      JSON.stringify(result, (_key, value) =>
+        typeof value === "bigint" ? value.toString() : value,
+      ),
+    ).not.toContain("95000000");
   });
 
   it("isolates provider decryption failures without logging plaintext", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     const deps = dependencies({
-      decryptEnvelope: async (ciphertext: string) => {
+      decryptEnvelope: async (ciphertext: Hex) => {
         if (ciphertext === "0xbb") throw new Error("malformed ciphertext");
         return dependencies().decryptEnvelope(ciphertext);
       },
@@ -97,7 +109,7 @@ describe("FCC HushFlow action handler", () => {
 
   it("turns seller decryption failure into INVALID_RFQ", async () => {
     const deps = dependencies({
-      decryptEnvelope: async (ciphertext: string) => {
+      decryptEnvelope: async (ciphertext: Hex) => {
         if (ciphertext === "0xaa") throw new Error("seller decrypt failed");
         return dependencies().decryptEnvelope(ciphertext);
       },
