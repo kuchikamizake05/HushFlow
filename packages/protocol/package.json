@@ -11,6 +11,7 @@
     "./deployment": "./src/deployment.ts",
     "./deployments/coston2": "./src/deployments/coston2.ts",
     "./explorer": "./src/explorer.ts",
+    "./events": "./src/events.ts",
     "./fcc": "./src/fcc.ts",
     "./read-api": "./src/read-api.ts"
   },
