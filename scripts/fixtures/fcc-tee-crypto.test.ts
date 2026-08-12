@@ -9,10 +9,14 @@ describe("FCC tee-node crypto adapter", () => {
   it("sends encrypted bytes as base64 and parses base64 plaintext JSON", async () => {
     const plaintext = { schemaVersion: 1, value: "97000000" };
     const fetcher = vi.fn(async (_url: string | URL, init?: RequestInit) => {
-      expect(JSON.parse(String(init?.body))).toEqual({ encryptedMessage: "qrs=" });
+      expect(JSON.parse(String(init?.body))).toEqual({
+        encryptedMessage: "qrs=",
+      });
       return new Response(
         JSON.stringify({
-          decryptedMessage: Buffer.from(JSON.stringify(plaintext)).toString("base64"),
+          decryptedMessage: Buffer.from(JSON.stringify(plaintext)).toString(
+            "base64",
+          ),
         }),
         { status: 200 },
       );
@@ -40,7 +44,9 @@ describe("FCC tee-node crypto adapter", () => {
     );
 
     await expect(failed("0xaa")).rejects.toThrow("TEE_DECRYPT_FAILED");
-    await expect(malformed("0xaa")).rejects.toThrow("TEE_DECRYPT_PLAINTEXT_INVALID");
+    await expect(malformed("0xaa")).rejects.toThrow(
+      "TEE_DECRYPT_PLAINTEXT_INVALID",
+    );
   });
 
   it("generates a fresh nonzero bytes32 result nonce", () => {
