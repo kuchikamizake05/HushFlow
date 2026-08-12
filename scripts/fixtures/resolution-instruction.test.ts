@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   decodeResolutionInstructionV1,
   encodeResolutionInstructionV1,
+  type ResolutionInstructionV1,
 } from "../../packages/protocol/src/fcc.js";
 
-const instruction = {
-  schemaVersion: 1 as const,
+const instruction: ResolutionInstructionV1 = {
+  schemaVersion: 1,
   chainId: 114n,
   contractAddress: "0x1111111111111111111111111111111111111111",
   rfqId: 42n,
@@ -23,11 +24,16 @@ const instruction = {
 
 describe("RESOLVE_RFQ instruction v1", () => {
   it("round-trips the contract ABI message without exposing plaintext values", () => {
-    const decoded = decodeResolutionInstructionV1(encodeResolutionInstructionV1(instruction));
+    const decoded = decodeResolutionInstructionV1(
+      encodeResolutionInstructionV1(instruction),
+    );
 
     expect(decoded).toEqual(instruction);
-    expect(JSON.stringify(decoded, (_key, value) => (typeof value === "bigint" ? value.toString() : value)))
-      .not.toContain("94000000");
+    expect(
+      JSON.stringify(decoded, (_key, value) =>
+        typeof value === "bigint" ? value.toString() : value,
+      ),
+    ).not.toContain("94000000");
   });
 
   it("rejects mismatched provider and ciphertext arrays and more than 20 providers", () => {

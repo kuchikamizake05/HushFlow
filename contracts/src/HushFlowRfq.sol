@@ -373,7 +373,8 @@ contract HushFlowRfq is ReentrancyGuard {
             _sellerCiphertexts[rfqId],
             rfq.quoteCap,
             providerAddresses,
-            ciphertexts
+            ciphertexts,
+            rfq.resolutionDeadline
         );
     }
 
