@@ -12,7 +12,10 @@ import {
   createIndexerPool,
   type IndexerPoolClient,
 } from "../../services/indexer/src/db/pool.js";
-import { IndexerStore, type RawChainLog } from "../../services/indexer/src/db/store.js";
+import {
+  IndexerStore,
+  type RawChainLog,
+} from "../../services/indexer/src/db/store.js";
 import { ReadRepository } from "../../services/indexer/src/api/repository.js";
 
 const SELLER = "0x1111111111111111111111111111111111111111";

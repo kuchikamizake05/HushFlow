@@ -13,6 +13,7 @@
   "dependencies": {
     "@hushflow/protocol": "workspace:*",
     "pg": "8.23.0",
+    "viem": "2.55.5",
     "zod": "4.4.3"
   },
   "devDependencies": {
