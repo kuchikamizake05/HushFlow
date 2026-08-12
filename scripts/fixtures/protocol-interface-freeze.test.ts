@@ -31,11 +31,7 @@ describe("M3 protocol constants", () => {
       "CANCELLED",
       "TIMED_OUT",
     ]);
-    expect(resultTypes).toEqual([
-      "TRADE",
-      "NO_VALID_QUOTE",
-      "INVALID_RFQ",
-    ]);
+    expect(resultTypes).toEqual(["TRADE", "NO_VALID_QUOTE", "INVALID_RFQ"]);
   });
 });
 

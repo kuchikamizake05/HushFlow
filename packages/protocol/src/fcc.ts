@@ -7,15 +7,20 @@ import {
 } from "viem";
 import { z } from "zod";
 
+import {
+  MAX_PROVIDERS,
+  payloadKinds,
+  resultTypes,
+  type PayloadKind,
+  type ResultType,
+} from "./constants.js";
+
 const UINT256_MAX = (1n << 256n) - 1n;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ZERO_BYTES32 = `0x${"0".repeat(64)}`;
 
-export const payloadKinds = ["SELLER_MINIMUM", "PROVIDER_QUOTE"] as const;
-export const resultTypes = ["TRADE", "NO_VALID_QUOTE", "INVALID_RFQ"] as const;
-
-export type PayloadKind = (typeof payloadKinds)[number];
-export type ResultType = (typeof resultTypes)[number];
+export { payloadKinds, resultTypes } from "./constants.js";
+export type { PayloadKind, ResultType } from "./constants.js";
 
 export interface EnvelopeV1 {
   schemaVersion: 1;
@@ -141,7 +146,7 @@ const resolutionInstructionV1Schema = z
         message: "RESOLUTION_PROVIDERS_MISMATCH",
       });
     }
-    if (value.providers.length > 20) {
+    if (value.providers.length > MAX_PROVIDERS) {
       context.addIssue({
         code: "custom",
         message: "RESOLUTION_PROVIDER_LIMIT",
