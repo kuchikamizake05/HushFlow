@@ -145,28 +145,33 @@ describe("M3 read API DTOs", () => {
 
   it.each([
     ["plaintext quote", { ...activity, quote: "250" }],
-    ["unsafe log index", { ...activity, logIndex: Number.MAX_SAFE_INTEGER + 1 }],
-    ["raw error", {
-      schemaVersion: 1,
-      status: "degraded",
-      chainId: 114,
-      latestIndexedBlock: "1",
-      latestObservedBlock: "2",
-      lagBlocks: "1",
-      checkedAt: "2026-08-12T12:00:00.000Z",
-      rawError: "Authorization: Bearer secret",
-    }],
+    [
+      "unsafe log index",
+      { ...activity, logIndex: Number.MAX_SAFE_INTEGER + 1 },
+    ],
+    [
+      "raw error",
+      {
+        schemaVersion: 1,
+        status: "degraded",
+        chainId: 114,
+        latestIndexedBlock: "1",
+        latestObservedBlock: "2",
+        lagBlocks: "1",
+        checkedAt: "2026-08-12T12:00:00.000Z",
+        rawError: "Authorization: Bearer secret",
+      },
+    ],
   ])("rejects unsafe or private read data: %s", (_label, input) => {
-    const schema = "rawError" in input ? indexerHealthDtoSchema : activityDtoSchema;
+    const schema =
+      "rawError" in input ? indexerHealthDtoSchema : activityDtoSchema;
     expect(() => schema.parse(input)).toThrow();
   });
 });
 
 describe("M3 Coston2 explorer helpers", () => {
   it("builds canonical address, transaction, and block URLs", () => {
-    expect(COSTON2_EXPLORER_URL).toBe(
-      "https://coston2-explorer.flare.network",
-    );
+    expect(COSTON2_EXPLORER_URL).toBe("https://coston2-explorer.flare.network");
     expect(getCoston2AddressUrl(ADDRESS_A)).toBe(
       `${COSTON2_EXPLORER_URL}/address/${ADDRESS_A}`,
     );
@@ -176,9 +181,7 @@ describe("M3 Coston2 explorer helpers", () => {
     expect(getCoston2BlockUrl("9007199254740993")).toBe(
       `${COSTON2_EXPLORER_URL}/block/9007199254740993`,
     );
-    expect(getCoston2BlockUrl(123n)).toBe(
-      `${COSTON2_EXPLORER_URL}/block/123`,
-    );
+    expect(getCoston2BlockUrl(123n)).toBe(`${COSTON2_EXPLORER_URL}/block/123`);
   });
 
   it.each([

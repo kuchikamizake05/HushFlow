@@ -10,7 +10,9 @@
     "./constants": "./src/constants.ts",
     "./deployment": "./src/deployment.ts",
     "./deployments/coston2": "./src/deployments/coston2.ts",
-    "./fcc": "./src/fcc.ts"
+    "./explorer": "./src/explorer.ts",
+    "./fcc": "./src/fcc.ts",
+    "./read-api": "./src/read-api.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
