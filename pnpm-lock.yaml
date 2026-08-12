@@ -54,6 +54,9 @@ importers:
       '@hushflow/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@noble/curves':
+        specifier: 1.9.1
+        version: 1.9.1
       viem:
         specifier: 2.55.5
         version: 2.55.5(typescript@6.0.3)(zod@4.4.3)

@@ -27,9 +27,12 @@ describe("FCC-compatible ECIES", () => {
     ["zero key", new Uint8Array(64)],
     ["invalid point", Uint8Array.from({ length: 64 }, () => 1)],
   ])("rejects %s with redacted error", async (_label, key) => {
-    await expect(encryptFccEcies(key, new Uint8Array([1]))).rejects.toMatchObject(
-      { code: "FCC_PUBLIC_KEY_INVALID", message: "FCC public key is invalid" },
-    );
+    await expect(
+      encryptFccEcies(key, new Uint8Array([1])),
+    ).rejects.toMatchObject({
+      code: "FCC_PUBLIC_KEY_INVALID",
+      message: "FCC public key is invalid",
+    });
   });
 
   it("rejects empty plaintext", async () => {

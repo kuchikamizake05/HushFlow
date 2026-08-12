@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ecies": "./src/ecies.ts",
     "./envelope": "./src/envelope.ts",
     "./metadata": "./src/metadata.ts"
   },
@@ -15,6 +16,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@noble/curves": "1.9.1",
     "@hushflow/protocol": "workspace:*",
     "viem": "2.55.5",
     "zod": "4.4.3"
