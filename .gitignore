@@ -10,6 +10,7 @@ broadcast/
 cache/
 coverage/
 dist/
+*.tsbuildinfo
 node_modules/
 out/
 result/

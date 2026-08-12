@@ -2,8 +2,12 @@
 .turbo/
 .tools/
 contracts/
+cache/
 coverage/
+dist/
 docs/
 node_modules/
+out/
 pnpm-lock.yaml
+**/dist/
 **/generated/
