@@ -1,6 +1,7 @@
 import { coston2Deployment } from "@hushflow/protocol/deployments/coston2";
 
 import { parseIndexerConfig } from "../config.js";
+import { publicErrorCode } from "../error-code.js";
 import { createMigratedPool } from "../runtime.js";
 import { ReadRepository } from "./repository.js";
 import { createReadApiHandler } from "./router.js";
@@ -34,6 +35,9 @@ async function main(): Promise<void> {
   process.once("SIGTERM", shutdown);
 }
 
-void main().catch(() => {
+void main().catch((error: unknown) => {
+  process.stderr.write(
+    `${publicErrorCode(error, "INDEXER_API_START_FAILED")}\n`,
+  );
   process.exitCode = 1;
 });

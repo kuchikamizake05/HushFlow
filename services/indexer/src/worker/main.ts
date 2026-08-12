@@ -4,6 +4,7 @@ import { coston2Deployment } from "@hushflow/protocol/deployments/coston2";
 
 import { parseIndexerConfig } from "../config.js";
 import { IndexerStore } from "../db/store.js";
+import { publicErrorCode } from "../error-code.js";
 import { createMigratedPool } from "../runtime.js";
 import { runWorkerCycle } from "./run.js";
 import {
@@ -55,6 +56,9 @@ async function main(): Promise<void> {
   await pool.end();
 }
 
-void main().catch(() => {
+void main().catch((error: unknown) => {
+  process.stderr.write(
+    `${publicErrorCode(error, "INDEXER_WORKER_START_FAILED")}\n`,
+  );
   process.exitCode = 1;
 });
