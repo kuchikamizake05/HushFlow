@@ -135,24 +135,28 @@ describe("deterministic event projector", () => {
   it.each([
     ["RfqCancelled", 4, "CANCELLED"],
     ["RfqTimedOut", 7, "TIMED_OUT"],
-  ] as const)("projects %s terminal state", async (_name, eventIndex, status) => {
-    const decoded = await events();
-    const originalCreated = requireEvent(decoded[2]);
-    if (originalCreated.eventName !== "RfqCreated") throw new Error("BAD_TEST");
-    const terminal = requireEvent(decoded[eventIndex]);
-    const rfqId = terminal.eventName === "RfqCancelled" ? "2" : "3";
-    const created: ProjectorEvent = {
-      ...originalCreated,
-      rfqId,
-      source: { ...originalCreated.source, logIndex: eventIndex + 20 },
-    };
-    const state = createProjection();
+  ] as const)(
+    "projects %s terminal state",
+    async (_name, eventIndex, status) => {
+      const decoded = await events();
+      const originalCreated = requireEvent(decoded[2]);
+      if (originalCreated.eventName !== "RfqCreated")
+        throw new Error("BAD_TEST");
+      const terminal = requireEvent(decoded[eventIndex]);
+      const rfqId = terminal.eventName === "RfqCancelled" ? "2" : "3";
+      const created: ProjectorEvent = {
+        ...originalCreated,
+        rfqId,
+        source: { ...originalCreated.source, logIndex: eventIndex + 20 },
+      };
+      const state = createProjection();
 
-    applyProjectorEvent(state, created);
-    applyProjectorEvent(state, terminal);
+      applyProjectorEvent(state, created);
+      applyProjectorEvent(state, terminal);
 
-    expect(snapshotProjection(state).rfqs[0]?.status).toBe(status);
-  });
+      expect(snapshotProjection(state).rfqs[0]?.status).toBe(status);
+    },
+  );
 
   it("rejects unknown fields and malformed public values", async () => {
     const fixture = JSON.parse(
