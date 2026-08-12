@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { parseEnvelopeV1, type EnvelopeV1 } from "../../packages/protocol/src/fcc.js";
+import {
+  parseEnvelopeV1,
+  type EnvelopeV1,
+} from "../../packages/protocol/src/fcc.js";
 import * as envelopeModule from "../../packages/crypto/src/envelope.js";
 import {
   assertEnvelopeBindings,
@@ -75,36 +78,44 @@ describe("secure EnvelopeV1 construction", () => {
     ["RFQ", { rfqId: 0n }],
     ["sender", { sender: "private-sender-value" }],
     ["value", { value: 0n }],
-  ])("rejects invalid %s input with a redacted typed error", (_name, override) => {
-    expect(() =>
-      createSellerMinimumEnvelope({
-        chainId: 114n,
-        contractAddress: CONTRACT,
-        rfqId: 42n,
-        sender: SELLER,
-        value: 94_000_000n,
-        ...override,
-      }),
-    ).toThrowError(HushFlowCryptoError);
+  ])(
+    "rejects invalid %s input with a redacted typed error",
+    (_name, override) => {
+      expect(() =>
+        createSellerMinimumEnvelope({
+          chainId: 114n,
+          contractAddress: CONTRACT,
+          rfqId: 42n,
+          sender: SELLER,
+          value: 94_000_000n,
+          ...override,
+        }),
+      ).toThrowError(HushFlowCryptoError);
 
-    try {
-      createSellerMinimumEnvelope({
-        chainId: 114n,
-        contractAddress: CONTRACT,
-        rfqId: 42n,
-        sender: SELLER,
-        value: 94_000_000n,
-        ...override,
-      });
-    } catch (error) {
-      expect((error as Error).message).not.toContain("private-sender-value");
-      expect((error as HushFlowCryptoError).code).toBe("ENVELOPE_INPUT_INVALID");
-    }
-  });
+      try {
+        createSellerMinimumEnvelope({
+          chainId: 114n,
+          contractAddress: CONTRACT,
+          rfqId: 42n,
+          sender: SELLER,
+          value: 94_000_000n,
+          ...override,
+        });
+      } catch (error) {
+        expect((error as Error).message).not.toContain("private-sender-value");
+        expect((error as HushFlowCryptoError).code).toBe(
+          "ENVELOPE_INPUT_INVALID",
+        );
+      }
+    },
+  );
 
   it.each([
     ["chain", { chainId: 115n }],
-    ["contract", { contractAddress: "0x4444444444444444444444444444444444444444" }],
+    [
+      "contract",
+      { contractAddress: "0x4444444444444444444444444444444444444444" },
+    ],
     ["RFQ", { rfqId: 43n }],
     ["sender", { sender: PROVIDER }],
     ["kind", { payloadKind: "PROVIDER_QUOTE" as const }],

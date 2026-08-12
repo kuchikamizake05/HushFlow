@@ -84,11 +84,35 @@ describe("FCC /info public-key metadata", () => {
   });
 
   it.each([
-    ["chain", (value: ReturnType<typeof validInfo>) => (value.teeInfo.chainId = 115), "FCC_INFO_IDENTITY_MISMATCH"],
-    ["extension", (value: ReturnType<typeof validInfo>) => (value.machineData.extensionId = `0x${"12".repeat(32)}`), "FCC_INFO_IDENTITY_MISMATCH"],
-    ["platform", (value: ReturnType<typeof validInfo>) => (value.machineData.platform = `0x${"34".repeat(32)}`), "FCC_INFO_IDENTITY_MISMATCH"],
-    ["code hash", (value: ReturnType<typeof validInfo>) => (value.machineData.codeHash = `0x${"23".repeat(32)}`), "FCC_INFO_IDENTITY_MISMATCH"],
-    ["stale timestamp", (value: ReturnType<typeof validInfo>) => (value.teeInfo.teeTimestamp = NOW_SECONDS - 301), "FCC_INFO_STALE"],
+    [
+      "chain",
+      (value: ReturnType<typeof validInfo>) => (value.teeInfo.chainId = 115),
+      "FCC_INFO_IDENTITY_MISMATCH",
+    ],
+    [
+      "extension",
+      (value: ReturnType<typeof validInfo>) =>
+        (value.machineData.extensionId = `0x${"12".repeat(32)}`),
+      "FCC_INFO_IDENTITY_MISMATCH",
+    ],
+    [
+      "platform",
+      (value: ReturnType<typeof validInfo>) =>
+        (value.machineData.platform = `0x${"34".repeat(32)}`),
+      "FCC_INFO_IDENTITY_MISMATCH",
+    ],
+    [
+      "code hash",
+      (value: ReturnType<typeof validInfo>) =>
+        (value.machineData.codeHash = `0x${"23".repeat(32)}`),
+      "FCC_INFO_IDENTITY_MISMATCH",
+    ],
+    [
+      "stale timestamp",
+      (value: ReturnType<typeof validInfo>) =>
+        (value.teeInfo.teeTimestamp = NOW_SECONDS - 301),
+      "FCC_INFO_STALE",
+    ],
   ])("rejects mismatched %s metadata", (_name, mutate, code) => {
     const value = validInfo();
     mutate(value);
@@ -98,7 +122,10 @@ describe("FCC /info public-key metadata", () => {
   it.each([
     ["short coordinate", { x: "0x12", y: GENERATOR_Y }],
     ["zero coordinate", { x: `0x${"00".repeat(32)}`, y: GENERATOR_Y }],
-    ["invalid curve point", { x: `0x${"00".repeat(31)}01`, y: `0x${"00".repeat(31)}01` }],
+    [
+      "invalid curve point",
+      { x: `0x${"00".repeat(31)}01`, y: `0x${"00".repeat(31)}01` },
+    ],
   ])("rejects a %s without exposing the raw key", (_name, publicKey) => {
     const value = validInfo();
     value.machineData.publicKey = publicKey;
@@ -112,12 +139,20 @@ describe("FCC /info public-key metadata", () => {
     const zeroHash = validInfo();
     zeroHash.machineData.codeHash = `0x${"00".repeat(32)}`;
     expectCode(
-      () => parseFccPublicKeyMetadata(zeroHash, { ...expectations, codeHash: zeroHash.machineData.codeHash }),
+      () =>
+        parseFccPublicKeyMetadata(zeroHash, {
+          ...expectations,
+          codeHash: zeroHash.machineData.codeHash,
+        }),
       "FCC_INFO_INVALID_RESPONSE",
     );
 
     expectCode(
-      () => parseFccPublicKeyMetadata({ ...validInfo(), rawSecret: "do-not-leak" }, expectations),
+      () =>
+        parseFccPublicKeyMetadata(
+          { ...validInfo(), rawSecret: "do-not-leak" },
+          expectations,
+        ),
       "FCC_INFO_INVALID_RESPONSE",
     );
   });
@@ -133,7 +168,10 @@ describe("FCC /info public-key metadata", () => {
 
     expect(fetcher).toHaveBeenCalledWith(
       "https://fcc.example/proxy/info",
-      expect.objectContaining({ method: "GET", signal: expect.any(AbortSignal) }),
+      expect.objectContaining({
+        method: "GET",
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(result.publicKey).toHaveLength(64);
   });
@@ -152,7 +190,10 @@ describe("FCC /info public-key metadata", () => {
         fetcher: never,
         timeoutMs: 5,
       }),
-    ).rejects.toMatchObject({ code: "FCC_INFO_TIMEOUT", message: "FCC metadata request timed out" });
+    ).rejects.toMatchObject({
+      code: "FCC_INFO_TIMEOUT",
+      message: "FCC metadata request timed out",
+    });
 
     await expect(
       fetchFccPublicKey("https://fcc.example", expectations, {
@@ -160,18 +201,27 @@ describe("FCC /info public-key metadata", () => {
           throw new Error("authorization=secret");
         },
       }),
-    ).rejects.toMatchObject({ code: "FCC_INFO_UNAVAILABLE", message: "FCC metadata is unavailable" });
+    ).rejects.toMatchObject({
+      code: "FCC_INFO_UNAVAILABLE",
+      message: "FCC metadata is unavailable",
+    });
 
     await expect(
       fetchFccPublicKey("https://fcc.example", expectations, {
         fetcher: async () => new Response("private response", { status: 502 }),
       }),
-    ).rejects.toMatchObject({ code: "FCC_INFO_UNAVAILABLE", message: "FCC metadata is unavailable" });
+    ).rejects.toMatchObject({
+      code: "FCC_INFO_UNAVAILABLE",
+      message: "FCC metadata is unavailable",
+    });
 
     await expect(
       fetchFccPublicKey("https://fcc.example", expectations, {
         fetcher: async () => new Response("private response", { status: 200 }),
       }),
-    ).rejects.toMatchObject({ code: "FCC_INFO_INVALID_RESPONSE", message: "FCC metadata response is invalid" });
+    ).rejects.toMatchObject({
+      code: "FCC_INFO_INVALID_RESPONSE",
+      message: "FCC metadata response is invalid",
+    });
   });
 });
