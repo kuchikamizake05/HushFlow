@@ -22,8 +22,16 @@ function concat(...items: readonly Uint8Array[]): Uint8Array {
   return output;
 }
 
+function ownedBuffer(value: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(value.length);
+  copy.set(value);
+  return copy.buffer;
+}
+
 async function sha256(value: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", value));
+  return new Uint8Array(
+    await crypto.subtle.digest("SHA-256", ownedBuffer(value)),
+  );
 }
 
 async function concatKdf(sharedX: Uint8Array): Promise<Uint8Array> {
@@ -65,28 +73,28 @@ export async function encryptFccEcies(
 
   const aesKey = await crypto.subtle.importKey(
     "raw",
-    encryptionKey,
+    ownedBuffer(encryptionKey),
     "AES-CTR",
     false,
     ["encrypt"],
   );
   const ciphertext = new Uint8Array(
     await crypto.subtle.encrypt(
-      { name: "AES-CTR", counter: iv, length: 128 },
+      { name: "AES-CTR", counter: ownedBuffer(iv), length: 128 },
       aesKey,
-      plaintext,
+      ownedBuffer(plaintext),
     ),
   );
   const authenticated = concat(iv, ciphertext);
   const hmacKey = await crypto.subtle.importKey(
     "raw",
-    macKey,
+    ownedBuffer(macKey),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
   const tag = new Uint8Array(
-    await crypto.subtle.sign("HMAC", hmacKey, authenticated),
+    await crypto.subtle.sign("HMAC", hmacKey, ownedBuffer(authenticated)),
   );
   if (
     tag.length !== TAG_BYTES ||
