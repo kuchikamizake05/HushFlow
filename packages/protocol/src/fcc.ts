@@ -1,8 +1,15 @@
-import { encodeAbiParameters, getAddress, type Address, type Hex } from "viem";
+import {
+  decodeAbiParameters,
+  encodeAbiParameters,
+  getAddress,
+  type Address,
+  type Hex,
+} from "viem";
 import { z } from "zod";
 
 const UINT256_MAX = (1n << 256n) - 1n;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const ZERO_BYTES32 = `0x${"0".repeat(64)}`;
 
 export const payloadKinds = ["SELLER_MINIMUM", "PROVIDER_QUOTE"] as const;
 export const resultTypes = ["TRADE", "NO_VALID_QUOTE", "INVALID_RFQ"] as const;
@@ -42,7 +49,7 @@ export interface ResultDataBindings {
 const uint256Schema = z
   .union([
     z.string().regex(/^(0|[1-9][0-9]*)$/),
-    z.number().int().nonnegative(),
+    z.number().int().nonnegative().safe(),
   ])
   .transform((value) => BigInt(value))
   .refine((value) => value <= UINT256_MAX, "UINT256_OUT_OF_RANGE");
@@ -55,6 +62,7 @@ const addressSchema = z
 const bytes32Schema = z
   .string()
   .regex(/^0x[0-9a-fA-F]{64}$/)
+  .refine((value) => value.toLowerCase() !== ZERO_BYTES32, "NONCE_ZERO")
   .transform((value) => value as Hex);
 
 const baseSchema = {
@@ -103,6 +111,24 @@ const resultTypeIds: Record<ResultType, number> = {
   INVALID_RFQ: 2,
 };
 
+const resultTypesById: Record<number, ResultType> = {
+  0: "TRADE",
+  1: "NO_VALID_QUOTE",
+  2: "INVALID_RFQ",
+};
+
+const resultDataV1Abi = [
+  { type: "uint16" },
+  { type: "uint256" },
+  { type: "address" },
+  { type: "uint256" },
+  { type: "uint8" },
+  { type: "address" },
+  { type: "uint256" },
+  { type: "uint256" },
+  { type: "bytes32" },
+] as const;
+
 export function parseEnvelopeV1(input: unknown): EnvelopeV1 {
   return envelopeV1Schema.parse(input);
 }
@@ -112,30 +138,48 @@ export function parseResultDataV1(input: unknown): ResultDataV1 {
 }
 
 export function encodeResultDataV1(result: ResultDataV1): Hex {
-  return encodeAbiParameters(
-    [
-      { type: "uint16" },
-      { type: "uint256" },
-      { type: "address" },
-      { type: "uint256" },
-      { type: "uint8" },
-      { type: "address" },
-      { type: "uint256" },
-      { type: "uint256" },
-      { type: "bytes32" },
-    ],
-    [
-      result.schemaVersion,
-      result.chainId,
-      result.contractAddress,
-      result.rfqId,
-      resultTypeIds[result.resultType],
-      result.winningProvider,
-      result.winningQuote,
-      result.resultExpiry,
-      result.resultNonce,
-    ],
-  );
+  return encodeAbiParameters(resultDataV1Abi, [
+    result.schemaVersion,
+    result.chainId,
+    result.contractAddress,
+    result.rfqId,
+    resultTypeIds[result.resultType],
+    result.winningProvider,
+    result.winningQuote,
+    result.resultExpiry,
+    result.resultNonce,
+  ]);
+}
+
+export function decodeResultDataV1(encoded: Hex): ResultDataV1 {
+  const [
+    schemaVersion,
+    chainId,
+    contractAddress,
+    rfqId,
+    resultTypeId,
+    winningProvider,
+    winningQuote,
+    resultExpiry,
+    resultNonce,
+  ] = decodeAbiParameters(resultDataV1Abi, encoded);
+  const resultType = resultTypesById[resultTypeId];
+
+  if (!resultType) {
+    throw new Error("RESULT_TYPE_INVALID");
+  }
+
+  return parseResultDataV1({
+    schemaVersion,
+    chainId: chainId.toString(),
+    contractAddress,
+    rfqId: rfqId.toString(),
+    resultType,
+    winningProvider,
+    winningQuote: winningQuote.toString(),
+    resultExpiry: resultExpiry.toString(),
+    resultNonce,
+  });
 }
 
 export function assertResultDataBindings(
