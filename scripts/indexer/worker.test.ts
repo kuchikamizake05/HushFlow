@@ -49,15 +49,17 @@ class FakeSource implements ChainSource {
     }
     return values;
   });
-  readonly getLogs = vi.fn(
-    async (_from: bigint, _to: bigint): Promise<RawChainLog[]> => [],
-  );
+  readonly getLogs = vi.fn(async (): Promise<RawChainLog[]> => []);
 }
 
 class FakeStore implements WorkerStore {
   cursor: { blockNumber: string; blockHash: string } | null = null;
   readonly batches: IngestionBatch[] = [];
-  readonly health: Array<{ status: string; detailCode?: string }> = [];
+  readonly health: Array<{
+    chainId: number;
+    status: string;
+    detailCode?: string;
+  }> = [];
   readonly verifyCursor = vi.fn(async () => undefined);
 
   async readCursor() {
@@ -68,7 +70,11 @@ class FakeStore implements WorkerStore {
     this.batches.push(batch);
   }
 
-  async markHealth(input: { status: string; detailCode?: string }) {
+  async markHealth(input: {
+    chainId: number;
+    status: string;
+    detailCode?: string;
+  }) {
     this.health.push(input);
   }
 }
@@ -112,7 +118,10 @@ describe("single indexer worker cycle", () => {
 
     expect(result).toEqual({ fromBlock: "14", toBlock: "13", ingested: false });
     expect(store.batches).toEqual([]);
-    expect(store.health.at(-1)).toMatchObject({ status: "healthy" });
+    expect(store.health.at(-1)).toMatchObject({
+      chainId: 114,
+      status: "healthy",
+    });
   });
 
   it("records a redacted RPC failure without moving ingestion", async () => {
@@ -127,7 +136,11 @@ describe("single indexer worker cycle", () => {
     );
     expect(store.batches).toEqual([]);
     expect(store.health).toEqual([
-      { status: "degraded", detailCode: "RPC_UNAVAILABLE" },
+      {
+        chainId: 114,
+        status: "degraded",
+        detailCode: "RPC_UNAVAILABLE",
+      },
     ]);
     await expect(runWorkerCycle(config, store, source)).resolves.toBeDefined();
   });

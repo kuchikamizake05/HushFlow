@@ -215,6 +215,58 @@ function sortBlocks(blocks: readonly ChainBlock[]): ChainBlock[] {
 export class IndexerStore {
   constructor(private readonly pool: Pool) {}
 
+  async readCursor(
+    chainId: number,
+  ): Promise<{ blockNumber: string; blockHash: string } | null> {
+    const result = await this.pool.query(
+      `SELECT last_processed_block, last_processed_hash
+         FROM chain_cursor
+        WHERE chain_id = $1`,
+      [chainId],
+    );
+    const row = result.rows[0];
+    if (!row?.last_processed_block || !row.last_processed_hash) return null;
+    return {
+      blockNumber: String(row.last_processed_block),
+      blockHash: String(row.last_processed_hash),
+    };
+  }
+
+  async markHealth(input: {
+    chainId: number;
+    status: "healthy" | "degraded" | "unavailable";
+    detailCode?: "RPC_UNAVAILABLE" | "DATABASE_UNAVAILABLE";
+    latestObservedBlock?: string;
+  }): Promise<void> {
+    const cursor = await this.readCursor(input.chainId);
+    const indexed = cursor?.blockNumber ?? "0";
+    const observed = input.latestObservedBlock ?? indexed;
+    const lag = BigInt(observed) - BigInt(indexed);
+    await this.pool.query(
+      `INSERT INTO indexer_health (
+         chain_id, status, latest_indexed_block, latest_observed_block,
+         lag_blocks, detail_code, last_success_at, checked_at
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+       ON CONFLICT (chain_id) DO UPDATE SET
+         status = EXCLUDED.status,
+         latest_indexed_block = EXCLUDED.latest_indexed_block,
+         latest_observed_block = EXCLUDED.latest_observed_block,
+         lag_blocks = EXCLUDED.lag_blocks,
+         detail_code = EXCLUDED.detail_code,
+         last_success_at = EXCLUDED.last_success_at,
+         checked_at = NOW()`,
+      [
+        input.chainId,
+        input.status,
+        indexed,
+        observed,
+        lag > 0n ? lag.toString() : "0",
+        input.detailCode ?? null,
+        input.status === "healthy" ? new Date() : null,
+      ],
+    );
+  }
+
   async verifyCursor(chainId: number, observed: ChainBlock): Promise<void> {
     const result = await this.pool.query(
       `SELECT last_processed_block, last_processed_hash
