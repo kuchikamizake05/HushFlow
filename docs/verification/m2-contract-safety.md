@@ -1,7 +1,9 @@
 # M2 Contract and Protocol Safety Evidence
 
-Date: 2026-08-12  
-Branch: `codex/m2-contract-safety`  
+Date: 2026-08-12
+
+Branch: `codex/m2-contract-safety`
+
 Baseline: `833d815` (`docs: finalize M1 local runtime evidence`)
 
 ## Result

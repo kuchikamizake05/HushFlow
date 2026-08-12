@@ -1,7 +1,9 @@
 # HushFlow M2 Contract Safety Implementation Plan
 
-Date: 2026-08-12  
-Design: `docs/superpowers/specs/2026-08-12-hushflow-m2-contract-safety-design.md`  
+Date: 2026-08-12
+
+Design: `docs/superpowers/specs/2026-08-12-hushflow-m2-contract-safety-design.md`
+
 Branch: `codex/m2-contract-safety`
 
 ## Working Rules

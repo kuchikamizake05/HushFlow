@@ -1,7 +1,9 @@
 # HushFlow M2 Contract and Protocol Safety Design
 
-Date: 2026-08-12  
-Status: approved for specification; implementation pending review  
+Date: 2026-08-12
+
+Status: approved for specification; implementation pending review
+
 Branch: `codex/m2-contract-safety`
 
 ## 1. Purpose
