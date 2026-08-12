@@ -176,6 +176,23 @@ contract HushFlowRfqTest {
         require(usdt0.balanceOf(PROVIDER_B) == QUOTE_CAP, "provider B refund");
     }
 
+    function testInvalidRfqRefundsEveryDeposit() public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.INVALID_RFQ, address(0), 0);
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+        vm.prank(PROVIDER_A);
+        rfq.claim(rfqId);
+        vm.prank(PROVIDER_B);
+        rfq.claim(rfqId);
+
+        require(fxrp.balanceOf(SELLER) == LOT, "seller invalid RFQ refund");
+        require(usdt0.balanceOf(PROVIDER_A) == QUOTE_CAP, "provider A invalid RFQ refund");
+        require(usdt0.balanceOf(PROVIDER_B) == QUOTE_CAP, "provider B invalid RFQ refund");
+    }
+
     function testTimeoutRefundsEveryDeposit() public {
         uint256 rfqId = _createAndQuote();
         vm.warp(RESOLUTION_DEADLINE + 1);
