@@ -20,7 +20,8 @@
     "preflight:toolchain": "bash -lc 'source scripts/setup/use-local-tools.sh && scripts/setup/check-toolchain.sh'",
     "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
     "preflight:fcc": "bash scripts/setup/check-fcc-access.sh",
-    "plan:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-live.ts"
+    "plan:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-live.ts",
+    "generate:protocol-abi": "tsx scripts/generate-protocol-abi.ts"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "5.6.1",

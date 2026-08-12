@@ -45,8 +45,8 @@ describe("M3 canonical HushFlow ABI", () => {
       .filter((item) => item.type === "event")
       .map((item) => item.name);
 
-    expect(functions).toEqual(expect.arrayContaining(REQUIRED_FUNCTIONS));
-    expect(events).toEqual(expect.arrayContaining(REQUIRED_EVENTS));
+    expect(functions).toEqual(expect.arrayContaining([...REQUIRED_FUNCTIONS]));
+    expect(events).toEqual(expect.arrayContaining([...REQUIRED_EVENTS]));
   });
 
   it("publishes the keccak hash of its canonical JSON representation", () => {
@@ -60,11 +60,8 @@ describe("M3 canonical HushFlow ABI", () => {
     const artifact = JSON.parse(
       await readFile("out/HushFlowRfq.sol/HushFlowRfq.json", "utf8"),
     ) as { abi: unknown };
-    const checkedIn = await readFile(
-      "packages/protocol/src/abi.ts",
-      "utf8",
-    );
+    const checkedIn = await readFile("packages/protocol/src/abi.ts", "utf8");
 
-    expect(renderProtocolAbiModule(artifact.abi)).toBe(checkedIn);
+    expect(await renderProtocolAbiModule(artifact.abi)).toBe(checkedIn);
   });
 });
