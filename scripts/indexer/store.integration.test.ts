@@ -73,13 +73,17 @@ async function coherentBatch() {
     void expected;
     return normalizeLog(log, sequence);
   });
-  const blocks: ChainBlock[] = logs.map((log, index) => ({
-    chainId: 114,
-    blockNumber: log.blockNumber,
-    blockHash: hash(20_000 + index),
-    parentHash: hash(19_999 + index),
-    timestamp: new Date(1_700_000_000_000 + index * 1_000),
-  }));
+  const blocks: ChainBlock[] = [];
+  for (let number = 123458; number <= 123464; number += 1) {
+    const index = number - 123458;
+    blocks.push({
+      chainId: 114,
+      blockNumber: String(number),
+      blockHash: hash(20_000 + index),
+      parentHash: hash(19_999 + index),
+      timestamp: new Date(1_700_000_000_000 + index * 1_000),
+    });
+  }
   return { blocks, logs };
 }
 

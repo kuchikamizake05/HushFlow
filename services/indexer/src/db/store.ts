@@ -448,6 +448,17 @@ export class IndexerStore {
         blocks.map(({ blockNumber }) => blockNumber),
       );
 
+      for (let index = 1; index < blocks.length; index += 1) {
+        const previous = blocks[index - 1]!;
+        const current = blocks[index]!;
+        if (
+          BigInt(current.blockNumber) !== BigInt(previous.blockNumber) + 1n ||
+          current.parentHash.toLowerCase() !== previous.blockHash.toLowerCase()
+        ) {
+          throw new Error("BLOCK_ANCESTRY_INVALID");
+        }
+      }
+
       for (const block of blocks) {
         if (block.chainId !== batch.chainId) throw new Error("CHAIN_MISMATCH");
         const result = await client.query(

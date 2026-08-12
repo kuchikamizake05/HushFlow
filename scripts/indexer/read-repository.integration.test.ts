@@ -70,13 +70,17 @@ beforeAll(async () => {
     void expected;
     return { ...log, transactionHash: hash(80_000 + sequence) };
   });
-  const blocks = logs.map((log, index) => ({
-    chainId: 114,
-    blockNumber: log.blockNumber,
-    blockHash: hash(90_000 + index),
-    parentHash: hash(89_999 + index),
-    timestamp: new Date(1_700_000_000_000 + index * 1_000),
-  }));
+  const blocks = [];
+  for (let number = 123458; number <= 123464; number += 1) {
+    const index = number - 123458;
+    blocks.push({
+      chainId: 114,
+      blockNumber: String(number),
+      blockHash: hash(90_000 + index),
+      parentHash: hash(89_999 + index),
+      timestamp: new Date(1_700_000_000_000 + index * 1_000),
+    });
+  }
   await new IndexerStore(pool).ingestBatch({
     chainId: 114,
     deploymentBlock: "123458",

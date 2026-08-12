@@ -55,13 +55,17 @@ async function batch() {
     void expected;
     return { ...log, transactionHash: hash(30_000 + sequence) };
   });
-  const blocks: ChainBlock[] = logs.map((log, index) => ({
-    chainId: 114,
-    blockNumber: log.blockNumber,
-    blockHash: hash(40_000 + index),
-    parentHash: hash(39_999 + index),
-    timestamp: new Date(1_700_000_000_000 + index * 1_000),
-  }));
+  const blocks: ChainBlock[] = [];
+  for (let number = 123458; number <= 123464; number += 1) {
+    const index = number - 123458;
+    blocks.push({
+      chainId: 114,
+      blockNumber: String(number),
+      blockHash: hash(40_000 + index),
+      parentHash: hash(39_999 + index),
+      timestamp: new Date(1_700_000_000_000 + index * 1_000),
+    });
+  }
   return { blocks, logs };
 }
 
@@ -149,18 +153,25 @@ describe("restart, replay, and reorg reconciliation", () => {
   it("removes orphaned evidence and rewinds to the nearest ancestor", async () => {
     const store = new IndexerStore(pool);
     const value = await ingest(store);
-    const ancestor = value.blocks[2]!;
+    const ancestor = value.blocks.find(
+      ({ blockNumber }) => blockNumber === "123461",
+    )!;
     const replacement: ChainBlock[] = [
       ancestor,
       {
-        ...value.blocks[3]!,
+        ...value.blocks[4]!,
         blockHash: hash(50_003),
         parentHash: ancestor.blockHash,
       },
       {
-        ...value.blocks[4]!,
+        ...value.blocks[5]!,
         blockHash: hash(50_004),
         parentHash: hash(50_003),
+      },
+      {
+        ...value.blocks[6]!,
+        blockHash: hash(50_005),
+        parentHash: hash(50_004),
       },
     ];
 
