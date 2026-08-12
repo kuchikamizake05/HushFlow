@@ -220,4 +220,28 @@ describe("IndexerStore PostgreSQL integration", () => {
       source_log_index: batch.logs[1]?.logIndex,
     });
   });
+
+  it("rejects a block range whose parent hash breaks continuity", async () => {
+    const store = new IndexerStore(pool);
+    const batch = await coherentBatch();
+    const blocks = batch.blocks.map((block) => ({ ...block }));
+    blocks[2] = { ...blocks[2]!, parentHash: hash(999_999) };
+
+    await expect(
+      store.ingestBatch({
+        chainId: 114,
+        deploymentBlock: "123458",
+        finalityWindow: 64,
+        contractAddress: CONTRACT,
+        latestObservedBlock: "123464",
+        blocks,
+        logs: batch.logs,
+      }),
+    ).rejects.toThrowError("INDEXER_BATCH_REJECTED");
+
+    const result = await pool.query(
+      "SELECT count(*)::int AS count FROM chain_blocks",
+    );
+    expect(result.rows[0]?.count).toBe(0);
+  });
 });

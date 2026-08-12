@@ -171,4 +171,50 @@ describe("deterministic event projector", () => {
       }),
     ).toThrowError("PROJECTOR_EVENT_INVALID");
   });
+
+  it.each([
+    ["2", "NO_VALID_QUOTE"],
+    ["3", "INVALID_RFQ"],
+  ] as const)(
+    "projects non-trade result status %s",
+    async (status, expected) => {
+      const decoded = await events();
+      const state = createProjection();
+      const finalized = requireEvent(decoded[6]);
+      if (finalized.eventName !== "RfqFinalized") throw new Error("BAD_TEST");
+
+      applyProjectorEvent(state, requireEvent(decoded[2]));
+      applyProjectorEvent(state, requireEvent(decoded[5]));
+      applyProjectorEvent(state, {
+        ...finalized,
+        status,
+        winningProvider: "0x0000000000000000000000000000000000000000",
+        winningQuote: "0",
+      });
+
+      expect(snapshotProjection(state).rfqs[0]?.status).toBe(expected);
+      expect(snapshotProjection(state).outcomes[0]).toMatchObject({
+        resultType: expected,
+        winningProvider: null,
+        winningQuote: null,
+      });
+    },
+  );
+
+  it("rejects an unknown finalized status", async () => {
+    const decoded = await events();
+    const state = createProjection();
+    const finalized = requireEvent(decoded[6]);
+    if (finalized.eventName !== "RfqFinalized") throw new Error("BAD_TEST");
+
+    applyProjectorEvent(state, requireEvent(decoded[2]));
+    applyProjectorEvent(state, requireEvent(decoded[5]));
+
+    expect(() =>
+      applyProjectorEvent(state, {
+        ...finalized,
+        status: "99",
+      }),
+    ).toThrowError("PROJECTOR_RESULT_STATUS_INVALID");
+  });
 });
