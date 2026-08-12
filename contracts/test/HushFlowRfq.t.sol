@@ -104,8 +104,8 @@ contract HushFlowRfqTest {
     uint256 internal constant LOT = 10_000_000;
     uint256 internal constant QUOTE_CAP = 120_000_000;
     uint256 internal constant WINNING_QUOTE = 97_000_000;
-    uint256 internal constant QUOTE_DEADLINE = 2_000;
-    uint256 internal constant RESOLUTION_DEADLINE = 3_000;
+    uint64 internal constant QUOTE_DEADLINE = 2_000;
+    uint64 internal constant RESOLUTION_DEADLINE = 3_000;
 
     MockToken internal fxrp;
     MockToken internal usdt0;
@@ -162,9 +162,7 @@ contract HushFlowRfqTest {
     function testNoValidQuoteRefundsEveryDeposit() public {
         uint256 rfqId = _createAndQuote();
         bytes32 actionId = _requestResolution(rfqId);
-        _submitSignedResult(
-            rfqId, actionId, HushFlowResultVerifier.ResultType.NO_VALID_QUOTE, address(0), 0
-        );
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.NO_VALID_QUOTE, address(0), 0);
 
         vm.prank(SELLER);
         rfq.claim(rfqId);
@@ -222,17 +220,15 @@ contract HushFlowRfqTest {
 
         (bytes memory resultData, bytes memory signature) =
             _signedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, address(0xBAD), WINNING_QUOTE);
-        (bool wrongWinner,) = address(rfq).call(
-            abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature))
-        );
+        (bool wrongWinner,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
         require(!wrongWinner, "non-provider winner accepted");
 
         (resultData, signature) =
             _signedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
         rfq.submitResult(resultData, actionId, "submit", 1, signature);
-        (bool replay,) = address(rfq).call(
-            abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature))
-        );
+        (bool replay,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
         require(!replay, "result replay accepted");
     }
 
