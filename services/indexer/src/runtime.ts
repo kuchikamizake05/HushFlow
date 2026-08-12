@@ -41,6 +41,9 @@ export function getMigrationDirectory(): string {
 
 export function getDefaultFixturePath(): string {
   return fileURLToPath(
-    new URL("../../../packages/protocol/fixtures/v1/events.json", import.meta.url),
+    new URL(
+      "../../../packages/protocol/fixtures/v1/events.json",
+      import.meta.url,
+    ),
   );
 }

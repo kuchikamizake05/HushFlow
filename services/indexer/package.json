@@ -15,11 +15,11 @@
   "dependencies": {
     "@hushflow/protocol": "workspace:*",
     "pg": "8.23.0",
+    "tsx": "4.23.1",
     "viem": "2.55.5",
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/pg": "8.21.0",
-    "tsx": "4.23.1"
+    "@types/pg": "8.21.0"
   }
 }

@@ -20,8 +20,7 @@ async function main(): Promise<void> {
   const source =
     config.mode === "fixture"
       ? await loadFixtureChainSource(
-          process.env.INDEXER_FIXTURE_PATH ??
-            getDefaultFixturePath(),
+          process.env.INDEXER_FIXTURE_PATH ?? getDefaultFixturePath(),
         )
       : new ViemChainSource(
           createPublicClient({
