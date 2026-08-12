@@ -113,8 +113,8 @@ describe("fixture chain source", () => {
     expect(await source.getBlocks(123458n, 123464n)).toHaveLength(7);
     const logs = await source.getLogs(123458n, 123464n);
     expect(logs).toHaveLength(5);
-    expect(new Set(logs.map(({ transactionHash }) => transactionHash)).size).toBe(
-      5,
-    );
+    expect(
+      new Set(logs.map(({ transactionHash }) => transactionHash)).size,
+    ).toBe(5);
   });
 });
