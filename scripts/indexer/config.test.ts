@@ -118,6 +118,7 @@ describe("parseIndexerConfig", () => {
     );
 
     expect(config.mode).toBe("live");
+    if (config.mode !== "live") throw new Error("EXPECTED_LIVE_CONFIG");
     expect(config.deployment).toBe(live);
   });
 });

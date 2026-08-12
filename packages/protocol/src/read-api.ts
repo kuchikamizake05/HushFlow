@@ -119,3 +119,54 @@ export const indexerHealthDtoSchema = z.strictObject({
     .enum(["RPC_UNAVAILABLE", "INDEXER_LAGGING", "DATABASE_UNAVAILABLE"])
     .optional(),
 });
+
+const proofProviderSchema = z.strictObject({
+  provider: address,
+  ciphertext: hex,
+});
+
+const tradeProofOutcomeSchema = z.strictObject({
+  resultType: z.literal("TRADE"),
+  winningProvider: address,
+  winningQuote: positiveDecimal,
+  resultNonce: hash,
+  transactionHash: hash,
+});
+
+const emptyProofOutcomeSchema = z.strictObject({
+  resultType: z.enum(["NO_VALID_QUOTE", "INVALID_RFQ"]),
+  winningProvider: z.null(),
+  winningQuote: z.null(),
+  resultNonce: hash,
+  transactionHash: hash,
+});
+
+export const rfqProofDtoSchema = z.strictObject({
+  ...base,
+  rfqId: positiveDecimal,
+  sellerCiphertext: hex,
+  providerCiphertexts: z.array(proofProviderSchema),
+  actionId: hash.nullable(),
+  outcome: z
+    .union([tradeProofOutcomeSchema, emptyProofOutcomeSchema])
+    .nullable(),
+});
+
+export const portfolioDtoSchema = z.strictObject({
+  ...base,
+  account: address,
+  rfqs: z.array(rfqSummaryDtoSchema),
+  claims: z.array(claimableDtoSchema),
+});
+
+export const protocolStatsDtoSchema = z.strictObject({
+  ...base,
+  rfqCount: decimal,
+  openRfqCount: decimal,
+  settledRfqCount: decimal,
+  providerParticipationCount: decimal,
+  totalLotAmount: decimal,
+  settledQuoteAmount: decimal,
+  latestIndexedBlock: decimal,
+  updatedAt: timestamp,
+});

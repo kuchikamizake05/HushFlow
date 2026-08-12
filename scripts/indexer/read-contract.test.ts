@@ -51,7 +51,10 @@ describe("M4A shared read contracts", () => {
 
     expect(rfqProofDtoSchema.parse(proof)).toEqual(proof);
     expect(() =>
-      rfqProofDtoSchema.parse({ ...proof, plaintextMinimum: "PRIVATE_MARKER_42" }),
+      rfqProofDtoSchema.parse({
+        ...proof,
+        plaintextMinimum: "PRIVATE_MARKER_42",
+      }),
     ).toThrow();
   });
 
