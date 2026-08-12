@@ -69,6 +69,16 @@ function invalid(code: string, message: string): never {
   throw new HushFlowCryptoError(code, message);
 }
 
+function hexToBytes(value: string): Uint8Array {
+  const bytes = new Uint8Array(value.length / 2);
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Number.parseInt(value.slice(index * 2, index * 2 + 2), 16);
+  }
+
+  return bytes;
+}
+
 function parsePoint(key: { x: string; y: string }): Uint8Array {
   if (key.x.length !== 66 || key.y.length !== 66) {
     invalid("FCC_PUBLIC_KEY_INVALID", "FCC public key is invalid");
@@ -84,9 +94,7 @@ function parsePoint(key: { x: string; y: string }): Uint8Array {
   ) {
     invalid("FCC_PUBLIC_KEY_INVALID", "FCC public key is invalid");
   }
-  return Uint8Array.from(
-    Buffer.from(`${key.x.slice(2)}${key.y.slice(2)}`, "hex"),
-  );
+  return hexToBytes(`${key.x.slice(2)}${key.y.slice(2)}`);
 }
 
 export function parseFccPublicKeyMetadata(
