@@ -59,7 +59,9 @@ describe("indexer SQL migrations", () => {
       "transactions",
       "indexer_health",
     ]) {
-      expect(sql).toContain(`CREATE TABLE ${table}`);
+      expect(sql).toMatch(
+        new RegExp(`CREATE TABLE(?: IF NOT EXISTS)? ${table}`),
+      );
     }
   });
 
@@ -67,7 +69,9 @@ describe("indexer SQL migrations", () => {
     const [migration] = await loadMigrations(migrationDirectory);
     const sql = migration?.sql ?? "";
 
-    expect(sql).toContain("PRIMARY KEY (chain_id, transaction_hash, log_index)");
+    expect(sql).toContain(
+      "PRIMARY KEY (chain_id, transaction_hash, log_index)",
+    );
     expect(sql).toContain("NUMERIC(78, 0)");
     expect(sql).toContain("ON DELETE CASCADE");
     expect(sql).toMatch(/CHECK \(.*~ '\^0x\[0-9a-f\]\{40\}\$'/s);
@@ -99,7 +103,9 @@ describe("indexer SQL migrations", () => {
 
     expect(client.applied).toHaveLength(1);
     expect(client.calls.filter(({ text }) => text === "BEGIN")).toHaveLength(2);
-    expect(client.calls.filter(({ text }) => text === "COMMIT")).toHaveLength(2);
+    expect(client.calls.filter(({ text }) => text === "COMMIT")).toHaveLength(
+      2,
+    );
   });
 
   it("rolls back and fails closed on checksum drift", async () => {
