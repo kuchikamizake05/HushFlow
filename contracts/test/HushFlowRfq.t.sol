@@ -189,6 +189,52 @@ contract HushFlowRfqTest {
         require(fxrp.balanceOf(address(rfq)) == 0 && usdt0.balanceOf(address(rfq)) == 0, "dust");
     }
 
+    function testAccountingTracksDepositsBeforeFinalization() public {
+        uint256 rfqId = _createAndQuote();
+
+        (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        ) = rfq.accounting(rfqId);
+
+        require(depositedFxrp == LOT, "deposited FXRP");
+        require(depositedUsdt0 == 2 * QUOTE_CAP, "deposited USDT0");
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "open RFQ became claimable");
+        require(claimedFxrp == 0 && claimedUsdt0 == 0, "open RFQ marked claimed");
+    }
+
+    function testAccountingConservesTerminalEntitlementsAcrossClaims() public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+
+        (, , uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+            rfq.accounting(rfqId);
+        require(claimableFxrp == LOT, "terminal FXRP entitlement");
+        require(claimableUsdt0 == 2 * QUOTE_CAP, "terminal USDT0 entitlement");
+        require(claimedFxrp == 0 && claimedUsdt0 == 0, "premature claimed totals");
+
+        vm.prank(SELLER);
+        rfq.claim(rfqId);
+        (, , claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        require(claimableFxrp == LOT, "seller consumed FXRP entitlement");
+        require(claimableUsdt0 == 2 * QUOTE_CAP - WINNING_QUOTE, "seller USDT0 entitlement remains");
+        require(claimedFxrp == 0 && claimedUsdt0 == WINNING_QUOTE, "seller claimed totals");
+
+        vm.prank(PROVIDER_B);
+        rfq.claim(rfqId);
+        vm.prank(PROVIDER_A);
+        rfq.claim(rfqId);
+        (, , claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "entitlements remain after all claims");
+        require(claimedFxrp == LOT, "claimed FXRP conservation");
+        require(claimedUsdt0 == 2 * QUOTE_CAP, "claimed USDT0 conservation");
+    }
+
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
         HushFlowRfq uninitialized =
