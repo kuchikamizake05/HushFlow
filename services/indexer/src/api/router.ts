@@ -5,7 +5,7 @@ import { rfqStatuses, type RfqStatus } from "@hushflow/protocol/constants";
 import type { DeploymentManifest } from "@hushflow/protocol/deployment";
 import { deploymentStatusDtoSchema } from "@hushflow/protocol/read-api";
 
-import type { ListRfqInput } from "./repository.js";
+import { ReadRepositoryError, type ListRfqInput } from "./repository.js";
 
 export interface ReadApiRepository {
   listRfqs(input: ListRfqInput): Promise<unknown>;
@@ -148,6 +148,12 @@ export function createReadApiHandler(
     } catch (error) {
       if (error instanceof RequestError) {
         return json(400, { error: "REQUEST_INVALID" });
+      }
+      if (
+        error instanceof ReadRepositoryError &&
+        error.code === "DEPLOYMENT_NOT_LIVE"
+      ) {
+        return json(503, { error: "DEPLOYMENT_NOT_LIVE" });
       }
       return json(500, { error: "INTERNAL_ERROR" });
     }

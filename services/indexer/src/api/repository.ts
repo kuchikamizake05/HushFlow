@@ -21,8 +21,8 @@ const pageSchema = createCursorPageSchema(rfqSummaryDtoSchema);
 
 export interface ReadRepositoryOptions {
   chainId: number;
-  fxrpToken: string;
-  usdt0Token: string;
+  fxrpToken?: string;
+  usdt0Token?: string;
 }
 
 export interface ListRfqInput {
@@ -78,7 +78,11 @@ function actorFromArgs(args: Record<string, unknown>): unknown {
 }
 
 export class ReadRepository {
-  readonly options: ReadRepositoryOptions;
+  readonly options: {
+    chainId: number;
+    fxrpToken: string | null;
+    usdt0Token: string | null;
+  };
 
   constructor(
     private readonly pool: Pool,
@@ -86,8 +90,8 @@ export class ReadRepository {
   ) {
     this.options = {
       chainId: options.chainId,
-      fxrpToken: getAddress(options.fxrpToken),
-      usdt0Token: getAddress(options.usdt0Token),
+      fxrpToken: options.fxrpToken ? getAddress(options.fxrpToken) : null,
+      usdt0Token: options.usdt0Token ? getAddress(options.usdt0Token) : null,
     };
   }
 
@@ -244,6 +248,9 @@ export class ReadRepository {
   }
 
   async getPortfolio(accountInput: string) {
+    if (!this.options.fxrpToken || !this.options.usdt0Token) {
+      throw new ReadRepositoryError("DEPLOYMENT_NOT_LIVE");
+    }
     const account = getAddress(accountInput);
     const [sellerPage, providerPage] = await Promise.all([
       this.listRfqs({ limit: 100, seller: account }),
