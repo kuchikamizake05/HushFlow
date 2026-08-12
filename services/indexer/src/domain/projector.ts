@@ -10,7 +10,7 @@ type RfqStatus =
   | "CANCELLED"
   | "TIMED_OUT";
 
-interface RfqRow {
+export interface RfqRow {
   rfqId: string;
   seller: string;
   lotAmount: string;
@@ -26,7 +26,7 @@ interface RfqRow {
   source: EventSource;
 }
 
-interface ProviderRow {
+export interface ProviderRow {
   rfqId: string;
   provider: string;
   position: number;
@@ -35,7 +35,7 @@ interface ProviderRow {
   source: EventSource;
 }
 
-interface ActionRow {
+export interface ActionRow {
   rfqId: string;
   actionId: string;
   status: "REQUESTED" | "RESOLVED";
@@ -43,7 +43,7 @@ interface ActionRow {
   source: EventSource;
 }
 
-interface OutcomeRow {
+export interface OutcomeRow {
   rfqId: string;
   resultType: "TRADE" | "NO_VALID_QUOTE" | "INVALID_RFQ";
   winningProvider: string | null;
@@ -52,7 +52,7 @@ interface OutcomeRow {
   source: EventSource;
 }
 
-interface ClaimRow {
+export interface ClaimRow {
   rfqId: string;
   account: string;
   fxrpAmount: string;

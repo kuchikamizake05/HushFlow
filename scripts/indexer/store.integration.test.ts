@@ -68,9 +68,11 @@ async function coherentBatch() {
     await readFile("packages/protocol/fixtures/v1/events.json", "utf8"),
   ) as Fixture;
   const indexes = [2, 3, 5, 6, 8];
-  const logs = indexes.map((index, sequence) =>
-    normalizeLog(fixture.logs[index]!, sequence),
-  );
+  const logs = indexes.map((index, sequence) => {
+    const { expected, ...log } = fixture.logs[index]!;
+    void expected;
+    return normalizeLog(log, sequence);
+  });
   const blocks: ChainBlock[] = logs.map((log, index) => ({
     chainId: 114,
     blockNumber: log.blockNumber,
@@ -112,7 +114,9 @@ describe("IndexerStore PostgreSQL integration", () => {
       ...batch,
     });
 
-    const evidence = await pool.query("SELECT count(*)::int AS count FROM chain_logs");
+    const evidence = await pool.query(
+      "SELECT count(*)::int AS count FROM chain_logs",
+    );
     const rfq = await pool.query(
       "SELECT status, provider_count, action_id FROM rfqs WHERE rfq_id = 1",
     );
@@ -134,7 +138,10 @@ describe("IndexerStore PostgreSQL integration", () => {
       last_processed_block: "123464",
       last_processed_hash: batch.blocks.at(-1)?.blockHash,
     });
-    expect(health.rows[0]).toMatchObject({ status: "healthy", lag_blocks: "0" });
+    expect(health.rows[0]).toMatchObject({
+      status: "healthy",
+      lag_blocks: "0",
+    });
   });
 
   it("ingests the same canonical batch idempotently", async () => {
@@ -159,7 +166,12 @@ describe("IndexerStore PostgreSQL integration", () => {
         (SELECT count(*)::int FROM rfq_providers) AS providers,
         (SELECT count(*)::int FROM claims) AS claims
     `);
-    expect(counts.rows[0]).toEqual({ logs: 5, rfqs: 1, providers: 1, claims: 1 });
+    expect(counts.rows[0]).toEqual({
+      logs: 5,
+      rfqs: 1,
+      providers: 1,
+      claims: 1,
+    });
   });
 
   it("rolls back the full batch when projection ordering is invalid", async () => {
