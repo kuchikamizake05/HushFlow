@@ -14,6 +14,9 @@ contract HushFlowRfq is ReentrancyGuard {
 
     uint256 public constant MAX_PROVIDERS = 20;
     uint256 public constant MAX_CIPHERTEXT_BYTES = 4_096;
+    uint256 public constant MIN_QUOTE_DURATION = 1 minutes;
+    uint256 public constant MAX_QUOTE_DURATION = 24 hours;
+    uint256 public constant RESOLUTION_DURATION = 30 minutes;
     uint256 private constant FIRST_PUBLIC_EXTENSION_ID = 0x10000;
     bytes32 public constant OP_TYPE_HUSHFLOW = bytes32("HUSHFLOW");
     bytes32 public constant OP_COMMAND_RESOLVE_RFQ = bytes32("RESOLVE_RFQ");
@@ -176,7 +179,12 @@ contract HushFlowRfq is ReentrancyGuard {
         if (_extensionId == 0) revert ExtensionNotInitialized();
         if (teeSigner == address(0)) revert TeeSignerNotInitialized();
         if (lotAmount == 0 || quoteCap == 0) revert InvalidAmount();
-        if (quoteDeadline <= block.timestamp || resolutionDeadline <= quoteDeadline) revert InvalidDeadlines();
+        if (quoteDeadline <= block.timestamp) revert InvalidDeadlines();
+        uint256 quoteDuration = uint256(quoteDeadline) - block.timestamp;
+        if (
+            quoteDuration < MIN_QUOTE_DURATION || quoteDuration > MAX_QUOTE_DURATION
+                || uint256(resolutionDeadline) != uint256(quoteDeadline) + RESOLUTION_DURATION
+        ) revert InvalidDeadlines();
         _validateCiphertext(encryptedSellerMinimum);
 
         rfqId = nextRfqId++;
