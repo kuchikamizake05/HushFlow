@@ -37,6 +37,58 @@ contract HushFlowResultVerifierTest {
         require(_selector(returned) == HushFlowResultVerifier.ResultChainMismatch.selector, "wrong error");
     }
 
+    function testRejectsEveryResultDataBindingAndOutcomeViolation() public {
+        HushFlowResultVerifier.ResultDataV1 memory result = HushFlowResultVerifier.decodeResultDataV1(TRADE_RESULT);
+
+        result.schemaVersion = 2;
+        _expectValidationFailure(result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.InvalidSchemaVersion.selector);
+        result.schemaVersion = 1;
+
+        _expectValidationFailure(
+            result,
+            114,
+            address(0x2222222222222222222222222222222222222222),
+            42,
+            1_900_000_000,
+            HushFlowResultVerifier.ResultContractMismatch.selector
+        );
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 43, 1_900_000_000, HushFlowResultVerifier.ResultRfqMismatch.selector
+        );
+
+        result.resultNonce = bytes32(0);
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultNonceZero.selector
+        );
+        result.resultNonce = bytes32(uint256(1));
+
+        result.winningProvider = address(0);
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+        );
+        result.winningProvider = address(0x4444444444444444444444444444444444444444);
+        result.winningQuote = 0;
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+        );
+        result.winningQuote = 97_000_000;
+        result.resultType = HushFlowResultVerifier.ResultType.NO_VALID_QUOTE;
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+        );
+    }
+
+    function testAcceptsCanonicalNoTradeOutcomeAtExactExpiry() public pure {
+        HushFlowResultVerifier.ResultDataV1 memory result = HushFlowResultVerifier.decodeResultDataV1(TRADE_RESULT);
+        result.resultType = HushFlowResultVerifier.ResultType.NO_VALID_QUOTE;
+        result.winningProvider = address(0);
+        result.winningQuote = 0;
+
+        HushFlowResultVerifier.validateResultDataV1(
+            result, result.chainId, result.contractAddress, result.rfqId, result.resultExpiry
+        );
+    }
+
     function testRejectsExpiredResult() public {
         HushFlowResultVerifier.ResultDataV1 memory result = HushFlowResultVerifier.decodeResultDataV1(TRADE_RESULT);
 
@@ -147,6 +199,25 @@ contract HushFlowResultVerifierTest {
 
         require(!success, "invalid action result accepted");
         require(_selector(returned) == expectedError, "wrong action result error");
+    }
+
+    function _expectValidationFailure(
+        HushFlowResultVerifier.ResultDataV1 memory result,
+        uint256 expectedChainId,
+        address expectedContract,
+        uint256 expectedRfqId,
+        uint256 currentTimestamp,
+        bytes4 expectedError
+    ) private {
+        (bool success, bytes memory returned) = address(this)
+            .call(
+                abi.encodeCall(
+                    this.validate, (result, expectedChainId, expectedContract, expectedRfqId, currentTimestamp)
+                )
+            );
+
+        require(!success, "invalid result data accepted");
+        require(_selector(returned) == expectedError, "wrong validation error");
     }
 
     function _selector(bytes memory returned) private pure returns (bytes4 selector) {
