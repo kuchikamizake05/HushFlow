@@ -94,6 +94,36 @@ contract MockTeeMachineRegistry is ITeeMachineRegistry {
     }
 }
 
+contract ReentrantTeeRegistry is ITeeExtensionRegistry {
+    address public instructionSender;
+    uint256 public rfqId;
+    uint256 public sendCount;
+    bool private entered;
+
+    function configure(address sender, uint256 targetRfqId) external {
+        instructionSender = sender;
+        rfqId = targetRfqId;
+    }
+
+    function nextPublicExtensionId() external pure returns (uint256) {
+        return 0x10001;
+    }
+
+    function getTeeExtensionInstructionsSender(uint256 extensionId) external view returns (address) {
+        return extensionId == 0x10000 ? instructionSender : address(0);
+    }
+
+    function sendInstructions(address[] calldata, TeeInstructionParams calldata) external payable returns (bytes32) {
+        ++sendCount;
+        if (!entered) {
+            entered = true;
+            (bool success,) = instructionSender.call(abi.encodeCall(HushFlowRfq.requestResolution, (rfqId)));
+            require(success, "reentrant request failed");
+        }
+        return bytes32(uint256(0xA11CE));
+    }
+}
+
 contract HushFlowRfqTest {
     Vm internal constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
 
@@ -272,6 +302,26 @@ contract HushFlowRfqTest {
         (bool replay,) =
             address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
         require(!replay, "result replay accepted");
+    }
+
+    function testResolutionRequestCannotBeReentered() public {
+        ReentrantTeeRegistry reentrantRegistry = new ReentrantTeeRegistry();
+        MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
+        HushFlowRfq target =
+            new HushFlowRfq(address(fxrp), address(usdt0), reentrantRegistry, machineRegistry, teeSigner);
+        reentrantRegistry.configure(address(target), 0);
+        target.setExtensionId();
+
+        vm.prank(SELLER);
+        fxrp.approve(address(target), type(uint256).max);
+        vm.prank(SELLER);
+        uint256 targetRfqId = target.createRfq(LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01");
+        reentrantRegistry.configure(address(target), targetRfqId);
+
+        vm.warp(QUOTE_DEADLINE);
+        target.requestResolution{value: 1 ether}(targetRfqId);
+
+        require(reentrantRegistry.sendCount() == 1, "duplicate FCC instruction created");
     }
 
     function _createAndQuote() internal returns (uint256 rfqId) {
