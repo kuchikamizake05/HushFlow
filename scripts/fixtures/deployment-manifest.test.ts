@@ -33,8 +33,15 @@ const pending = {
 } as const;
 
 const live = {
-  ...pending,
+  schemaVersion: 1,
   status: "live",
+  network: "coston2",
+  chainId: 114,
+  rpcUrl: pending.rpcUrl,
+  explorerUrl: pending.explorerUrl,
+  abiHash: HASH_A,
+  generatedAt: pending.generatedAt,
+  contracts: pending.contracts,
   deployedAt: "2026-08-12T11:00:00.000Z",
   hushFlowRfq: ADDRESS_E,
   extensionId: HASH_B,
