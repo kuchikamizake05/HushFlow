@@ -54,7 +54,7 @@ describe("FCC confidential quote selection", () => {
   it("uses earlier on-chain submission order for equal quotes", () => {
     const secondQuote = {
       ...envelopeFixture.providerQuotes[1],
-      value: envelopeFixture.providerQuotes[0].value,
+      value: envelopeFixture.providerQuotes[0]!.value,
     };
 
     const result = resolve(envelopeFixture.sellerMinimum, [

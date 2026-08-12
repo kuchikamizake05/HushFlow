@@ -1,11 +1,8 @@
 {
-  "name": "@hushflow/protocol",
+  "name": "@hushflow/fcc-extension",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    "./fcc": "./src/fcc.ts"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src/**/*.ts",
@@ -14,7 +11,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "viem": "2.55.5",
-    "zod": "4.4.3"
+    "@hushflow/protocol": "workspace:*",
+    "viem": "2.55.5"
   }
 }
