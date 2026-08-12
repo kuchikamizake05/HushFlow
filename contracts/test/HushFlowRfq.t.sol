@@ -98,6 +98,7 @@ contract ReentrantTeeRegistry is ITeeExtensionRegistry {
     address public instructionSender;
     uint256 public rfqId;
     uint256 public sendCount;
+    bool public reentrySucceeded;
     bool private entered;
 
     function configure(address sender, uint256 targetRfqId) external {
@@ -117,8 +118,7 @@ contract ReentrantTeeRegistry is ITeeExtensionRegistry {
         ++sendCount;
         if (!entered) {
             entered = true;
-            (bool success,) = instructionSender.call(abi.encodeCall(HushFlowRfq.requestResolution, (rfqId)));
-            require(success, "reentrant request failed");
+            (reentrySucceeded,) = instructionSender.call(abi.encodeCall(HushFlowRfq.requestResolution, (rfqId)));
         }
         return bytes32(uint256(0xA11CE));
     }
@@ -322,6 +322,7 @@ contract HushFlowRfqTest {
         target.requestResolution{value: 1 ether}(targetRfqId);
 
         require(reentrantRegistry.sendCount() == 1, "duplicate FCC instruction created");
+        require(!reentrantRegistry.reentrySucceeded(), "reentrant call succeeded");
     }
 
     function _createAndQuote() internal returns (uint256 rfqId) {

@@ -212,7 +212,7 @@ contract HushFlowRfq is ReentrancyGuard {
         emit QuoteSubmitted(rfqId, msg.sender, ciphertext);
     }
 
-    function requestResolution(uint256 rfqId) external payable returns (bytes32 actionId) {
+    function requestResolution(uint256 rfqId) external payable nonReentrant returns (bytes32 actionId) {
         Rfq storage rfq = _openRfq(rfqId);
         if (block.timestamp < rfq.quoteDeadline) revert QuoteWindowStillOpen(rfq.quoteDeadline, block.timestamp);
         if (block.timestamp > rfq.resolutionDeadline) {
