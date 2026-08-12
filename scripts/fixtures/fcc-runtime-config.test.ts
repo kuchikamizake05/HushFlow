@@ -4,7 +4,10 @@ import { readRuntimeConfig } from "../../services/fcc-extension/src/main.js";
 
 describe("FCC runtime configuration", () => {
   it("uses the FCC extension and signing port defaults", () => {
-    expect(readRuntimeConfig({})).toEqual({ extensionPort: 7702, signPort: 7701 });
+    expect(readRuntimeConfig({})).toEqual({
+      extensionPort: 7702,
+      signPort: 7701,
+    });
   });
 
   it("accepts explicit valid ports and rejects unsafe values", () => {
