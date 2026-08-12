@@ -5,6 +5,8 @@ import {
   parseDeploymentManifest,
   requireLiveDeployment,
 } from "../../packages/protocol/src/deployment.js";
+import { coston2Deployment } from "../../packages/protocol/src/deployments/coston2.js";
+import { HUSHFLOW_ABI_HASH } from "../../packages/protocol/src/abi.js";
 
 const HASH_A = `0x${"a".repeat(64)}`;
 const HASH_B = `0x${"b".repeat(64)}`;
@@ -52,6 +54,14 @@ const live = {
 } as const;
 
 describe("M3 deployment manifest", () => {
+  it("ships an honest pending Coston2 manifest without invented addresses", () => {
+    const parsed = parseDeploymentManifest(coston2Deployment);
+
+    expect(parsed.status).toBe("pending");
+    expect(parsed.abiHash).toBe(HUSHFLOW_ABI_HASH);
+    expect(parsed.contracts).toEqual({});
+  });
+
   it("parses an honest pending manifest and blocks wallet writes", () => {
     const parsed = parseDeploymentManifest(pending);
 
