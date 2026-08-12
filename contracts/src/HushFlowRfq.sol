@@ -75,6 +75,8 @@ contract HushFlowRfq is ReentrancyGuard {
     error ResolutionWindowClosed(uint256 deadline, uint256 currentTimestamp);
     error ResolutionWindowStillOpen(uint256 deadline, uint256 currentTimestamp);
     error SellerCannotQuote();
+    error UnauthorizedCancellation(address caller);
+    error QuotesAlreadySubmitted();
     error DuplicateQuote();
     error ProviderLimitReached();
     error ResolutionAlreadyRequested();
@@ -100,6 +102,7 @@ contract HushFlowRfq is ReentrancyGuard {
         bytes sellerCiphertext
     );
     event QuoteSubmitted(uint256 indexed rfqId, address indexed provider, bytes ciphertext);
+    event RfqCancelled(uint256 indexed rfqId);
     event ResolutionRequested(uint256 indexed rfqId, bytes32 indexed actionId);
     event RfqFinalized(
         uint256 indexed rfqId,
@@ -210,6 +213,15 @@ contract HushFlowRfq is ReentrancyGuard {
         _pullExact(USDT0, msg.sender, rfq.quoteCap);
 
         emit QuoteSubmitted(rfqId, msg.sender, ciphertext);
+    }
+
+    function cancelRfq(uint256 rfqId) external {
+        Rfq storage rfq = _openRfq(rfqId);
+        if (msg.sender != rfq.seller) revert UnauthorizedCancellation(msg.sender);
+        if (_providers[rfqId].length != 0) revert QuotesAlreadySubmitted();
+
+        rfq.status = Status.CANCELLED;
+        emit RfqCancelled(rfqId);
     }
 
     function requestResolution(uint256 rfqId) external payable nonReentrant returns (bytes32 actionId) {
