@@ -90,7 +90,10 @@ describe("M3 deployment manifest", () => {
     ["unsafe block", { ...live, deploymentBlock: 1_234_567 }],
     ["zero contract", { ...live, hushFlowRfq: `0x${"0".repeat(40)}` }],
     ["zero extension", { ...live, extensionId: `0x${"0".repeat(64)}` }],
-    ["extra pending reason", { ...live, blockingReason: "FCC_ORGANIZER_ACCESS" }],
+    [
+      "extra pending reason",
+      { ...live, blockingReason: "FCC_ORGANIZER_ACCESS" },
+    ],
   ])("rejects inconsistent live manifest with %s", (_label, input) => {
     expect(() => parseDeploymentManifest(input)).toThrow();
   });
