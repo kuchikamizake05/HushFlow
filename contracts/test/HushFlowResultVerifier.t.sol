@@ -41,7 +41,9 @@ contract HushFlowResultVerifierTest {
         HushFlowResultVerifier.ResultDataV1 memory result = HushFlowResultVerifier.decodeResultDataV1(TRADE_RESULT);
 
         result.schemaVersion = 2;
-        _expectValidationFailure(result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.InvalidSchemaVersion.selector);
+        _expectValidationFailure(
+            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.InvalidSchemaVersion.selector
+        );
         result.schemaVersion = 1;
 
         _expectValidationFailure(
@@ -64,17 +66,32 @@ contract HushFlowResultVerifierTest {
 
         result.winningProvider = address(0);
         _expectValidationFailure(
-            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+            result,
+            114,
+            result.contractAddress,
+            42,
+            1_900_000_000,
+            HushFlowResultVerifier.ResultOutcomeInconsistent.selector
         );
         result.winningProvider = address(0x4444444444444444444444444444444444444444);
         result.winningQuote = 0;
         _expectValidationFailure(
-            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+            result,
+            114,
+            result.contractAddress,
+            42,
+            1_900_000_000,
+            HushFlowResultVerifier.ResultOutcomeInconsistent.selector
         );
         result.winningQuote = 97_000_000;
         result.resultType = HushFlowResultVerifier.ResultType.NO_VALID_QUOTE;
         _expectValidationFailure(
-            result, 114, result.contractAddress, 42, 1_900_000_000, HushFlowResultVerifier.ResultOutcomeInconsistent.selector
+            result,
+            114,
+            result.contractAddress,
+            42,
+            1_900_000_000,
+            HushFlowResultVerifier.ResultOutcomeInconsistent.selector
         );
     }
 

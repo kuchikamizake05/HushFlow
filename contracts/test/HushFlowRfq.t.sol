@@ -217,7 +217,7 @@ contract HushFlowRfqTest {
         bytes32 actionId = _requestResolution(rfqId);
         _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
 
-        (, , uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+        (,, uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
             rfq.accounting(rfqId);
         require(claimableFxrp == LOT, "terminal FXRP entitlement");
         require(claimableUsdt0 == 2 * QUOTE_CAP, "terminal USDT0 entitlement");
@@ -225,7 +225,7 @@ contract HushFlowRfqTest {
 
         vm.prank(SELLER);
         rfq.claim(rfqId);
-        (, , claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        (,, claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
         require(claimableFxrp == LOT, "seller consumed FXRP entitlement");
         require(claimableUsdt0 == 2 * QUOTE_CAP - WINNING_QUOTE, "seller USDT0 entitlement remains");
         require(claimedFxrp == 0 && claimedUsdt0 == WINNING_QUOTE, "seller claimed totals");
@@ -234,7 +234,7 @@ contract HushFlowRfqTest {
         rfq.claim(rfqId);
         vm.prank(PROVIDER_A);
         rfq.claim(rfqId);
-        (, , claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
+        (,, claimableFxrp, claimableUsdt0, claimedFxrp, claimedUsdt0) = rfq.accounting(rfqId);
         require(claimableFxrp == 0 && claimableUsdt0 == 0, "entitlements remain after all claims");
         require(claimedFxrp == LOT, "claimed FXRP conservation");
         require(claimedUsdt0 == 2 * QUOTE_CAP, "claimed USDT0 conservation");
@@ -296,7 +296,7 @@ contract HushFlowRfqTest {
 
         require(!claimedSuccessfully, "false-return claim succeeded");
         require(!target.claimed(1, SELLER), "failed claim consumed entitlement");
-        (, , uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        (,, uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
         require(claimableFxrp == LOT && claimedFxrp == 0, "failed claim changed accounting");
 
         adversarial.setTransferMode(AdversarialToken.Mode.STANDARD);
@@ -317,7 +317,7 @@ contract HushFlowRfqTest {
 
         require(!claimedSuccessfully, "reverting claim succeeded");
         require(!target.claimed(1, SELLER), "reverting claim consumed entitlement");
-        (, , uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
+        (,, uint256 claimableFxrp,, uint256 claimedFxrp,) = target.accounting(1);
         require(claimableFxrp == LOT && claimedFxrp == 0, "reverting claim changed accounting");
     }
 
@@ -354,11 +354,31 @@ contract HushFlowRfqTest {
             rfq.claim(rfqId);
         }
 
-        (, , uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+        (,, uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
             rfq.accounting(rfqId);
         require(claimableFxrp == 0 && claimableUsdt0 == 0, "claim order left entitlements");
         require(claimedFxrp == LOT, "claim order lost FXRP");
         require(claimedUsdt0 == 2 * QUOTE_CAP, "claim order lost USDT0");
+    }
+
+    function testGasResolutionWithTwoProviders() public {
+        uint256 rfqId = _createAndQuote();
+        _requestResolution(rfqId);
+    }
+
+    function testGasResolutionWithTwentyProvidersAndMaximumCiphertexts() public {
+        uint256 rfqId = _createRfq();
+        bytes memory maximumCiphertext = new bytes(4_096);
+        _submitQuote(rfqId, PROVIDER_A, maximumCiphertext);
+        for (uint256 i = 0; i < 19; ++i) {
+            address provider = address(uint160(0x2000 + i));
+            usdt0.mint(provider, QUOTE_CAP);
+            vm.prank(provider);
+            usdt0.approve(address(rfq), type(uint256).max);
+            _submitQuote(rfqId, provider, maximumCiphertext);
+        }
+
+        _requestResolution(rfqId);
     }
 
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
@@ -435,7 +455,7 @@ contract HushFlowRfqTest {
         (bool requested,) = address(rfq).call{value: 1}(abi.encodeCall(rfq.requestResolution, (rfqId)));
 
         require(!requested, "zero instruction id accepted");
-        (, , , , , , , , bytes32 actionId) = rfq.rfqs(rfqId);
+        (,,,,,,,, bytes32 actionId) = rfq.rfqs(rfqId);
         require(actionId == bytes32(0), "zero action request recorded");
     }
 
@@ -502,11 +522,17 @@ contract HushFlowRfqTest {
         require(providerList.length == 2 && providerList[0] == PROVIDER_A && providerList[1] == PROVIDER_B, "providers");
         require(keccak256(rfq.quoteCiphertext(rfqId, PROVIDER_A)) == keccak256(hex"02"), "quote ciphertext");
 
-        (uint256 depositedFxrp, uint256 depositedUsdt0, uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
-            rfq.accounting(type(uint256).max);
+        (
+            uint256 depositedFxrp,
+            uint256 depositedUsdt0,
+            uint256 claimableFxrp,
+            uint256 claimableUsdt0,
+            uint256 claimedFxrp,
+            uint256 claimedUsdt0
+        ) = rfq.accounting(type(uint256).max);
         require(
-            depositedFxrp == 0 && depositedUsdt0 == 0 && claimableFxrp == 0 && claimableUsdt0 == 0
-                && claimedFxrp == 0 && claimedUsdt0 == 0,
+            depositedFxrp == 0 && depositedUsdt0 == 0 && claimableFxrp == 0 && claimableUsdt0 == 0 && claimedFxrp == 0
+                && claimedUsdt0 == 0,
             "unknown RFQ accounting"
         );
     }
@@ -677,9 +703,7 @@ contract HushFlowRfqTest {
     function testRejectsConsumedActionIdReusedAcrossRfqs() public {
         uint256 firstRfqId = _createAndQuote();
         bytes32 actionId = _requestResolution(firstRfqId);
-        _submitSignedResult(
-            firstRfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE
-        );
+        _submitSignedResult(firstRfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
 
         vm.warp(1_000);
         fxrp.mint(SELLER, LOT);
@@ -690,16 +714,11 @@ contract HushFlowRfqTest {
         bytes32 repeatedActionId = rfq.requestResolution{value: 1 ether}(secondRfqId);
         require(repeatedActionId == actionId, "test registry did not reuse action id");
         (bytes memory resultData, bytes memory signature) = _signedResult(
-            secondRfqId,
-            repeatedActionId,
-            HushFlowResultVerifier.ResultType.TRADE,
-            PROVIDER_B,
-            WINNING_QUOTE
+            secondRfqId, repeatedActionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE
         );
 
-        (bool accepted,) = address(rfq).call(
-            abi.encodeCall(rfq.submitResult, (resultData, repeatedActionId, "submit", 1, signature))
-        );
+        (bool accepted,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, repeatedActionId, "submit", 1, signature)));
         require(!accepted, "consumed action id reused across RFQs");
     }
 
@@ -737,9 +756,8 @@ contract HushFlowRfqTest {
 
     function _tryCreateRfq(uint64 quoteDeadline, uint64 resolutionDeadline) internal returns (bool created) {
         vm.prank(SELLER);
-        (created,) = address(rfq).call(
-            abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01"))
-        );
+        (created,) = address(rfq)
+            .call(abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01")));
     }
 
     function _tryCreateCustom(uint256 lotAmount, uint256 quoteCap, bytes memory ciphertext)
@@ -747,11 +765,8 @@ contract HushFlowRfqTest {
         returns (bool created)
     {
         vm.prank(SELLER);
-        (created,) = address(rfq).call(
-            abi.encodeCall(
-                rfq.createRfq, (lotAmount, quoteCap, QUOTE_DEADLINE, RESOLUTION_DEADLINE, ciphertext)
-            )
-        );
+        (created,) = address(rfq)
+            .call(abi.encodeCall(rfq.createRfq, (lotAmount, quoteCap, QUOTE_DEADLINE, RESOLUTION_DEADLINE, ciphertext)));
     }
 
     function _adversarialRfq()
@@ -772,9 +787,8 @@ contract HushFlowRfqTest {
 
     function _tryCreateOn(HushFlowRfq target) internal returns (bool created) {
         vm.prank(SELLER);
-        (created,) = address(target).call(
-            abi.encodeCall(target.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01"))
-        );
+        (created,) = address(target)
+            .call(abi.encodeCall(target.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01")));
     }
 
     function _claimPermutation(uint8 permutation) internal pure returns (address[3] memory actors) {

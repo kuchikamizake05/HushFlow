@@ -42,7 +42,7 @@ contract HushFlowRfqInvariantTest {
     function invariantTerminalEntitlementsEqualDeposits() public view {
         uint256 nextRfqId = rfq.nextRfqId();
         for (uint256 rfqId = 1; rfqId < nextRfqId; ++rfqId) {
-            (, , , , , HushFlowRfq.Status status, , ,) = rfq.rfqs(rfqId);
+            (,,,,, HushFlowRfq.Status status,,,) = rfq.rfqs(rfqId);
             if (status == HushFlowRfq.Status.OPEN) continue;
 
             (
@@ -63,7 +63,7 @@ contract HushFlowRfqInvariantTest {
         uint256 unclaimedFxrp;
         uint256 unclaimedUsdt0;
         for (uint256 rfqId = 1; rfqId < nextRfqId; ++rfqId) {
-            (uint256 depositedFxrp, uint256 depositedUsdt0, , , uint256 claimedFxrp, uint256 claimedUsdt0) =
+            (uint256 depositedFxrp, uint256 depositedUsdt0,,, uint256 claimedFxrp, uint256 claimedUsdt0) =
                 rfq.accounting(rfqId);
             unclaimedFxrp += depositedFxrp - claimedFxrp;
             unclaimedUsdt0 += depositedUsdt0 - claimedUsdt0;

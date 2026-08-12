@@ -53,11 +53,7 @@ contract InvariantExtensionRegistry is ITeeExtensionRegistry {
         return extensionId == EXTENSION_ID ? _instructionSender : address(0);
     }
 
-    function sendInstructions(address[] calldata, TeeInstructionParams calldata)
-        external
-        payable
-        returns (bytes32)
-    {
+    function sendInstructions(address[] calldata, TeeInstructionParams calldata) external payable returns (bytes32) {
         return keccak256(abi.encode(msg.sender, msg.value, block.number));
     }
 }
@@ -123,9 +119,8 @@ contract HushFlowRfqHandler {
         fxrp.mint(address(this), LOT);
         fxrp.approve(address(rfq), type(uint256).max);
 
-        (bool created, bytes memory result) = address(rfq).call(
-            abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01"))
-        );
+        (bool created, bytes memory result) = address(rfq)
+            .call(abi.encodeCall(rfq.createRfq, (LOT, QUOTE_CAP, quoteDeadline, resolutionDeadline, hex"01")));
         if (created) activeRfqId = abi.decode(result, (uint256));
     }
 
@@ -166,7 +161,8 @@ contract HushFlowRfqHandler {
         if (activeRfqId == 0 || _status(activeRfqId) != HushFlowRfq.Status.OPEN) return;
         usdt0.mint(address(provider), QUOTE_CAP);
         _attempt(
-            address(provider), abi.encodeCall(provider.submitQuote, (rfq, activeRfqId, abi.encodePacked(ciphertextSeed)))
+            address(provider),
+            abi.encodeCall(provider.submitQuote, (rfq, activeRfqId, abi.encodePacked(ciphertextSeed)))
         );
     }
 
@@ -180,10 +176,10 @@ contract HushFlowRfqHandler {
     }
 
     function _status(uint256 rfqId) private view returns (HushFlowRfq.Status status) {
-        (, , , , , status, , ,) = rfq.rfqs(rfqId);
+        (,,,,, status,,,) = rfq.rfqs(rfqId);
     }
 
     function _resolutionDeadline(uint256 rfqId) private view returns (uint64 resolutionDeadline) {
-        (, , , , resolutionDeadline, , , ,) = rfq.rfqs(rfqId);
+        (,,,, resolutionDeadline,,,,) = rfq.rfqs(rfqId);
     }
 }
