@@ -4,6 +4,7 @@ import {
   buildLiveScenarioPlan,
   parseDeploymentConfig,
 } from "../coston2/live-plan.js";
+import { executeLiveScenario } from "../coston2/live-runner.js";
 
 const ADDRESS = {
   contract: "0x1111111111111111111111111111111111111111",
@@ -102,5 +103,54 @@ describe("Coston2 three-wallet scenario plan", () => {
         quoteCap: 120_000_000n,
       }),
     ).toThrow("SCENARIO_AMOUNT_INVALID");
+  });
+
+  it("executes actions sequentially and records only public evidence", async () => {
+    const calls: string[] = [];
+    const plan = buildLiveScenarioPlan({
+      contractAddress: ADDRESS.contract,
+      seller: ADDRESS.seller,
+      providerA: ADDRESS.providerA,
+      providerB: ADDRESS.providerB,
+      lotAmount: 10_000_000n,
+      quoteCap: 120_000_000n,
+    });
+
+    const evidence = await executeLiveScenario(plan, async (action) => {
+      calls.push(action.kind);
+      return `0x${calls.length.toString(16).padStart(64, "0")}`;
+    });
+
+    expect(calls).toEqual(plan.actions.map((action) => action.kind));
+    expect(evidence).toHaveLength(plan.actions.length);
+    expect(JSON.stringify(evidence)).not.toMatch(/private|secret|quotePlaintext/i);
+  });
+
+  it("stops immediately when an action fails", async () => {
+    const calls: string[] = [];
+    const plan = buildLiveScenarioPlan({
+      contractAddress: ADDRESS.contract,
+      seller: ADDRESS.seller,
+      providerA: ADDRESS.providerA,
+      providerB: ADDRESS.providerB,
+      lotAmount: 10_000_000n,
+      quoteCap: 120_000_000n,
+    });
+
+    await expect(
+      executeLiveScenario(plan, async (action) => {
+        calls.push(action.kind);
+        if (action.kind === "SUBMIT_QUOTE_A") {
+          throw new Error("SIMULATED_FAILURE");
+        }
+        return `0x${calls.length.toString(16).padStart(64, "0")}`;
+      }),
+    ).rejects.toThrow("SCENARIO_ACTION_FAILED:SUBMIT_QUOTE_A");
+    expect(calls).toEqual([
+      "APPROVE_FXRP",
+      "CREATE_RFQ",
+      "APPROVE_USDT0_A",
+      "SUBMIT_QUOTE_A",
+    ]);
   });
 });
