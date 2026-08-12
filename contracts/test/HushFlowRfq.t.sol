@@ -317,6 +317,46 @@ contract HushFlowRfqTest {
         require(claimableFxrp == LOT && claimedFxrp == 0, "reverting claim changed accounting");
     }
 
+    function testFuzzAcceptsEveryBoundedQuoteWindow(uint64 seed) public {
+        uint64 duration = uint64(60 + uint256(seed) % (86_400 - 60 + 1));
+        uint64 quoteDeadline = uint64(block.timestamp) + duration;
+        uint64 resolutionDeadline = quoteDeadline + 1_800;
+
+        require(_tryCreateRfq(quoteDeadline, resolutionDeadline), "bounded quote window rejected");
+    }
+
+    function testFuzzRejectsEveryTradeQuoteAboveCap(uint96 excessSeed) public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        uint256 excessiveQuote = QUOTE_CAP + 1 + uint256(excessSeed);
+        (bytes memory resultData, bytes memory signature) =
+            _signedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, excessiveQuote);
+
+        (bool accepted,) =
+            address(rfq).call(abi.encodeCall(rfq.submitResult, (resultData, actionId, "submit", 1, signature)));
+
+        require(!accepted, "over-cap trade accepted");
+        require(!rfq.consumedActionIds(actionId), "rejected action consumed");
+    }
+
+    function testFuzzEveryTradeClaimOrderConservesDeposits(uint8 orderSeed) public {
+        uint256 rfqId = _createAndQuote();
+        bytes32 actionId = _requestResolution(rfqId);
+        _submitSignedResult(rfqId, actionId, HushFlowResultVerifier.ResultType.TRADE, PROVIDER_B, WINNING_QUOTE);
+
+        address[3] memory actors = _claimPermutation(orderSeed % 6);
+        for (uint256 i = 0; i < actors.length; ++i) {
+            vm.prank(actors[i]);
+            rfq.claim(rfqId);
+        }
+
+        (, , uint256 claimableFxrp, uint256 claimableUsdt0, uint256 claimedFxrp, uint256 claimedUsdt0) =
+            rfq.accounting(rfqId);
+        require(claimableFxrp == 0 && claimableUsdt0 == 0, "claim order left entitlements");
+        require(claimedFxrp == LOT, "claim order lost FXRP");
+        require(claimedUsdt0 == 2 * QUOTE_CAP, "claim order lost USDT0");
+    }
+
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
         HushFlowRfq uninitialized =
@@ -560,6 +600,15 @@ contract HushFlowRfqTest {
         (created,) = address(target).call(
             abi.encodeCall(target.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01"))
         );
+    }
+
+    function _claimPermutation(uint8 permutation) internal pure returns (address[3] memory actors) {
+        if (permutation == 0) return [SELLER, PROVIDER_A, PROVIDER_B];
+        if (permutation == 1) return [SELLER, PROVIDER_B, PROVIDER_A];
+        if (permutation == 2) return [PROVIDER_A, SELLER, PROVIDER_B];
+        if (permutation == 3) return [PROVIDER_A, PROVIDER_B, SELLER];
+        if (permutation == 4) return [PROVIDER_B, SELLER, PROVIDER_A];
+        return [PROVIDER_B, PROVIDER_A, SELLER];
     }
 
     function _submitQuote(uint256 rfqId, address provider, bytes memory ciphertext) internal {
