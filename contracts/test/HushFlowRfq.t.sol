@@ -161,24 +161,26 @@ contract HushFlowRfqTest {
 
     function testTeeSignerInitializesOnceBeforeRfqCreation() public {
         MockTeeMachineRegistry machineRegistry = new MockTeeMachineRegistry(teeSigner);
-        HushFlowRfq uninitialized = new HushFlowRfq(
-            address(fxrp), address(usdt0), teeRegistry, machineRegistry, address(0)
-        );
+        HushFlowRfq uninitialized =
+            new HushFlowRfq(address(fxrp), address(usdt0), teeRegistry, machineRegistry, address(0));
         teeRegistry.setInstructionSender(address(uninitialized));
         uninitialized.setExtensionId();
 
-        (bool createdBeforeSigner,) = address(uninitialized).call(
-            abi.encodeCall(
-                uninitialized.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01")
-            )
-        );
+        (bool createdBeforeSigner,) = address(uninitialized)
+            .call(
+                abi.encodeCall(uninitialized.createRfq, (LOT, QUOTE_CAP, QUOTE_DEADLINE, RESOLUTION_DEADLINE, hex"01"))
+            );
         require(!createdBeforeSigner, "RFQ created without signer");
+
+        vm.prank(address(0xBAD));
+        (bool initializedByOther,) =
+            address(uninitialized).call(abi.encodeCall(uninitialized.initializeTeeSigner, (teeSigner)));
+        require(!initializedByOther, "unauthorized signer initialization");
 
         uninitialized.initializeTeeSigner(teeSigner);
         require(uninitialized.teeSigner() == teeSigner, "signer was not initialized");
-        (bool replaced,) = address(uninitialized).call(
-            abi.encodeCall(uninitialized.initializeTeeSigner, (address(0xBADD)))
-        );
+        (bool replaced,) =
+            address(uninitialized).call(abi.encodeCall(uninitialized.initializeTeeSigner, (address(0xBADD))));
         require(!replaced, "signer replaced");
     }
 

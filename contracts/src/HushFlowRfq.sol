@@ -44,7 +44,8 @@ contract HushFlowRfq is ReentrancyGuard {
     IERC20 public immutable USDT0;
     ITeeExtensionRegistry public immutable TEE_EXTENSION_REGISTRY;
     ITeeMachineRegistry public immutable TEE_MACHINE_REGISTRY;
-    address public immutable TEE_SIGNER;
+    address public immutable TEE_SIGNER_INITIALIZER;
+    address public teeSigner;
 
     uint256 public nextRfqId = 1;
     uint256 private _extensionId;
@@ -62,6 +63,9 @@ contract HushFlowRfq is ReentrancyGuard {
     error ExtensionIdAlreadySet();
     error ExtensionIdNotFound();
     error ExtensionNotInitialized();
+    error TeeSignerNotInitialized();
+    error TeeSignerAlreadyInitialized();
+    error UnauthorizedTeeSignerInitializer(address caller);
     error InvalidAmount();
     error InvalidDeadlines();
     error InvalidCiphertextLength(uint256 actualLength);
@@ -85,6 +89,7 @@ contract HushFlowRfq is ReentrancyGuard {
     error UnsupportedTokenBehavior(address token);
 
     event ExtensionIdInitialized(uint256 indexed extensionId);
+    event TeeSignerInitialized(address indexed teeSigner);
     event RfqCreated(
         uint256 indexed rfqId,
         address indexed seller,
@@ -111,11 +116,11 @@ contract HushFlowRfq is ReentrancyGuard {
         address usdt0,
         ITeeExtensionRegistry teeExtensionRegistry,
         ITeeMachineRegistry teeMachineRegistry,
-        address teeSigner
+        address initialTeeSigner
     ) {
         if (
             fxrp == address(0) || usdt0 == address(0) || address(teeExtensionRegistry) == address(0)
-                || address(teeMachineRegistry) == address(0) || teeSigner == address(0)
+                || address(teeMachineRegistry) == address(0)
         ) revert ZeroAddress();
         _requireCode(fxrp);
         _requireCode(usdt0);
@@ -126,7 +131,11 @@ contract HushFlowRfq is ReentrancyGuard {
         USDT0 = IERC20(usdt0);
         TEE_EXTENSION_REGISTRY = teeExtensionRegistry;
         TEE_MACHINE_REGISTRY = teeMachineRegistry;
-        TEE_SIGNER = teeSigner;
+        TEE_SIGNER_INITIALIZER = msg.sender;
+        if (initialTeeSigner != address(0)) {
+            teeSigner = initialTeeSigner;
+            emit TeeSignerInitialized(initialTeeSigner);
+        }
     }
 
     function setExtensionId() external {
@@ -146,6 +155,14 @@ contract HushFlowRfq is ReentrancyGuard {
         return _extensionId;
     }
 
+    function initializeTeeSigner(address signer) external {
+        if (msg.sender != TEE_SIGNER_INITIALIZER) revert UnauthorizedTeeSignerInitializer(msg.sender);
+        if (teeSigner != address(0)) revert TeeSignerAlreadyInitialized();
+        if (signer == address(0)) revert ZeroAddress();
+        teeSigner = signer;
+        emit TeeSignerInitialized(signer);
+    }
+
     function createRfq(
         uint256 lotAmount,
         uint256 quoteCap,
@@ -154,6 +171,7 @@ contract HushFlowRfq is ReentrancyGuard {
         bytes calldata encryptedSellerMinimum
     ) external nonReentrant returns (uint256 rfqId) {
         if (_extensionId == 0) revert ExtensionNotInitialized();
+        if (teeSigner == address(0)) revert TeeSignerNotInitialized();
         if (lotAmount == 0 || quoteCap == 0) revert InvalidAmount();
         if (quoteDeadline <= block.timestamp || resolutionDeadline <= quoteDeadline) revert InvalidDeadlines();
         _validateCiphertext(encryptedSellerMinimum);
@@ -244,7 +262,7 @@ contract HushFlowRfq is ReentrancyGuard {
             SUBMISSION_TAG_HASH,
             actionStatus,
             signature,
-            TEE_SIGNER,
+            teeSigner,
             block.chainid
         );
         HushFlowResultVerifier.validateResultDataV1(result, block.chainid, address(this), result.rfqId, block.timestamp);
