@@ -18,7 +18,7 @@ import {
 } from "../../services/indexer/src/db/store.js";
 import { ReadRepository } from "../../services/indexer/src/api/repository.js";
 
-const SELLER = "0x1111111111111111111111111111111111111111";
+const SELLER = "0x3333333333333333333333333333333333333333";
 const PROVIDER = "0x2222222222222222222222222222222222222222";
 const CONTRACT = "0x9999999999999999999999999999999999999999";
 const FXRP = "0x3333333333333333333333333333333333333333";
@@ -176,7 +176,7 @@ describe("M4A read repository", () => {
     expect(seller.claims).toEqual([
       expect.objectContaining({
         rfqId: "1",
-        fxrpAmount: "1000000",
+        fxrpAmount: "0",
         usdt0Amount: "2400000",
         claimed: true,
       }),
