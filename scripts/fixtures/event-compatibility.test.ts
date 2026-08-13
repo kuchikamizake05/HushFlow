@@ -54,6 +54,30 @@ describe("M3 strict HushFlow event decoding", () => {
     }
   });
 
+  it("keeps the settled seller distinct and records only its USDT0 claim", async () => {
+    const fixture = await loadFixture();
+    const teeSigner = fixture.logs[1]!.expected as {
+      args: { teeSigner: string };
+    };
+    const created = fixture.logs[2]!.expected as {
+      args: { seller: string };
+    };
+    const claimed = fixture.logs[8]!.expected as {
+      args: {
+        account: string;
+        fxrpAmount: string;
+        usdt0Amount: string;
+      };
+    };
+
+    expect(created.args.seller).not.toBe(teeSigner.args.teeSigner);
+    expect(claimed.args).toMatchObject({
+      account: created.args.seller,
+      fxrpAmount: "0",
+      usdt0Amount: "2400000",
+    });
+  });
+
   it("rejects a log from the wrong contract", async () => {
     const log = stripExpected((await loadFixture()).logs[0]!);
 
