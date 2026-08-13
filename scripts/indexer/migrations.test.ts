@@ -119,6 +119,16 @@ describe("indexer SQL migrations", () => {
     );
   });
 
+  it("serializes migrations across independently started worker and API processes", async () => {
+    const client = new FakeClient();
+
+    await applyMigrations(client, await loadMigrations(migrationDirectory));
+
+    expect(
+      client.calls.some(({ text }) => text.includes("pg_advisory_xact_lock")),
+    ).toBe(true);
+  });
+
   it("rolls back and fails closed on checksum drift", async () => {
     const client = new FakeClient();
     const migrations = await loadMigrations(migrationDirectory);
