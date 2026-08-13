@@ -29,11 +29,38 @@ describe("M4B read adapter", () => {
       status: 200,
     });
 
-    await expect(loadReadModel("/metadata", async () => response)).rejects.toEqual(
-      new ReadModelError("READ_INVALID"),
-    );
-    await expect(loadReadModel("/not-a-read-route", async () => response)).rejects.toEqual(
-      new ReadModelError("READ_INVALID"),
-    );
+    await expect(
+      loadReadModel("/metadata", async () => response),
+    ).rejects.toEqual(new ReadModelError("READ_INVALID"));
+    await expect(
+      loadReadModel("/not-a-read-route", async () => response),
+    ).rejects.toEqual(new ReadModelError("READ_INVALID"));
+  });
+
+  it("handles valid metadata and coarse upstream failures", async () => {
+    await expect(
+      loadReadModel(
+        "/metadata",
+        async () =>
+          new Response(
+            JSON.stringify({ mode: "live", sourceId: "coston2-indexer" }),
+          ),
+      ),
+    ).resolves.toEqual({ mode: "live", sourceId: "coston2-indexer" });
+    await expect(
+      loadReadModel("/rfqs", async () => new Response("bad", { status: 503 })),
+    ).rejects.toEqual(new ReadModelError("READ_UNAVAILABLE"));
+    await expect(
+      loadReadModel("/rfqs", async () => new Response("not json")),
+    ).rejects.toEqual(new ReadModelError("READ_INVALID"));
+    await expect(
+      loadReadModel("/rfqs", async () => new Response("null")),
+    ).rejects.toEqual(new ReadModelError("READ_INVALID"));
+    await expect(
+      loadReadModel(
+        "/rfqs",
+        async () => new Response(JSON.stringify({ items: [] })),
+      ),
+    ).resolves.toEqual({ items: [] });
   });
 });

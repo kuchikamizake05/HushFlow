@@ -18,4 +18,16 @@ describe("Proof Center presentation", () => {
       claimable: false,
     });
   });
+
+  it("does not present an unavailable signed result as verified", () => {
+    expect(
+      getProofPresentation({
+        evidenceStatus: "PARTIAL",
+        reason: "SIGNED_RESULT_UNAVAILABLE",
+      }),
+    ).toMatchObject({
+      label: "Partial evidence",
+      detail: "Signed-result evidence is unavailable.",
+    });
+  });
 });

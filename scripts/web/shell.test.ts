@@ -25,4 +25,11 @@ describe("M4B application shell", () => {
       expect.arrayContaining(["/trade", "/proof", "/portfolio"]),
     );
   });
+
+  it("labels verified live provenance without claiming a write is safe", () => {
+    const banner = DataStatusBanner({
+      provenance: { mode: "live", sourceId: "coston2-indexer" },
+    });
+    expect(banner?.props.children).toContain("Live indexed data");
+  });
 });
