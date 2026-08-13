@@ -252,7 +252,7 @@ const proofCenterVerifiedSchema = z
     signature: z.string().regex(/^0x[0-9a-fA-F]{130}$/),
     actionId: hash,
     submissionTag: z.string().min(1).max(128),
-    actionStatus: z.literal(1),
+    actionResultStatus: z.literal(1),
     decodedResult: z.union([
       decodedTradeResultSchema,
       decodedEmptyResultSchema,

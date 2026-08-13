@@ -137,7 +137,7 @@ describe("M4A shared read contracts", () => {
       signature: `0x${"ab".repeat(65)}`,
       actionId: hash,
       submissionTag: "submit",
-      actionStatus: 1,
+      actionResultStatus: 1,
       decodedResult: {
         schemaVersion: 1,
         chainId: "114",
@@ -168,6 +168,24 @@ describe("M4A shared read contracts", () => {
       rfqProofCenterDtoV2Schema.parse({
         ...verified,
         signatureVerified: false,
+      }),
+    ).toThrow();
+    expect(() =>
+      rfqProofCenterDtoV2Schema.parse({
+        ...verified,
+        provenance: { mode: "fixture", sourceId: "local-fixture-v1" },
+      }),
+    ).toThrow();
+    expect(() =>
+      rfqProofCenterDtoV2Schema.parse({
+        ...verified,
+        recoveredTeeSigner: provider,
+      }),
+    ).toThrow();
+    expect(() =>
+      rfqProofCenterDtoV2Schema.parse({
+        ...verified,
+        decodedResult: { ...verified.decodedResult, rfqId: "2" },
       }),
     ).toThrow();
   });
