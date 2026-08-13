@@ -34,6 +34,8 @@ beforeAll(async () => {
   const store = new IndexerStore(pool);
   const config: IndexerConfig = {
     mode: "fixture",
+    fixturePath: "packages/protocol/fixtures/v1/events.json",
+    sourceIdentity: "process-smoke-v1",
     databaseUrl: connection.toString(),
     port: 0,
     batchSize: 3,

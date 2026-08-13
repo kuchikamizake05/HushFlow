@@ -1,4 +1,3 @@
-import type { Pool } from "pg";
 import { describe, expect, it, vi } from "vitest";
 
 import { encodeRfqCursor } from "../../services/indexer/src/api/cursor.js";
@@ -28,8 +27,12 @@ function row(rfqId: string) {
 
 describe("portfolio pagination", () => {
   it("uses one stable combined seller/provider query and opaque cursor", async () => {
-    const query = vi.fn(async () => ({ rows: [row("3"), row("2"), row("1")] }));
-    const repository = new ReadRepository({ query } as unknown as Pool, {
+    const query = vi.fn(async (text: string, values?: unknown[]) => {
+      void text;
+      void values;
+      return { rows: [row("3"), row("2"), row("1")] };
+    });
+    const repository = new ReadRepository({ query } as never, {
       chainId: 114,
       fxrpToken: OTHER,
       usdt0Token: "0x3333333333333333333333333333333333333333",

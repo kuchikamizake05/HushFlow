@@ -20,7 +20,13 @@ const integer = (minimum: number, maximum: number, fallback: number) =>
     .default(fallback);
 
 const environmentSchema = z.object({
-  INDEXER_MODE: z.enum(["fixture", "live"]).default("fixture"),
+  INDEXER_MODE: z.enum(["fixture", "live"]),
+  INDEXER_FIXTURE_PATH: z.string().min(1).max(1_024).optional(),
+  INDEXER_SOURCE_IDENTITY: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9._:/-]+$/),
   DATABASE_URL: databaseUrlSchema,
   INDEXER_API_PORT: integer(1, 65_535, 8_787),
   INDEXER_BATCH_SIZE: integer(1, 1_000, 250),
@@ -34,10 +40,12 @@ interface CommonIndexerConfig {
   batchSize: number;
   finalityWindow: number;
   pollIntervalMs: number;
+  sourceIdentity: string;
 }
 
 export interface FixtureIndexerConfig extends CommonIndexerConfig {
   mode: "fixture";
+  fixturePath: string;
 }
 
 export interface LiveIndexerConfig extends CommonIndexerConfig {
@@ -73,10 +81,18 @@ export function parseIndexerConfig(
     batchSize: value.INDEXER_BATCH_SIZE,
     finalityWindow: value.INDEXER_FINALITY_WINDOW,
     pollIntervalMs: value.INDEXER_POLL_INTERVAL_MS,
+    sourceIdentity: value.INDEXER_SOURCE_IDENTITY,
   };
 
   if (value.INDEXER_MODE === "fixture") {
-    return { mode: "fixture", ...common };
+    if (!value.INDEXER_FIXTURE_PATH) {
+      throw new IndexerConfigError("INDEXER_CONFIG_INVALID");
+    }
+    return {
+      mode: "fixture",
+      fixturePath: value.INDEXER_FIXTURE_PATH,
+      ...common,
+    };
   }
 
   try {

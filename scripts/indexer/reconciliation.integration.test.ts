@@ -113,6 +113,8 @@ async function ingest(store: IndexerStore) {
     chainId: 114,
     deploymentBlock: "123458",
     finalityWindow: 64,
+    dataMode: "fixture",
+    sourceIdentity: "reconciliation-test-v1",
     contractAddress: CONTRACT,
     latestObservedBlock: "123464",
     ...value,

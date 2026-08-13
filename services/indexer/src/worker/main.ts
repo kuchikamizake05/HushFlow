@@ -5,7 +5,7 @@ import { coston2Deployment } from "@hushflow/protocol/deployments/coston2";
 import { parseIndexerConfig } from "../config.js";
 import { IndexerStore } from "../db/store.js";
 import { publicErrorCode } from "../error-code.js";
-import { createMigratedPool, getDefaultFixturePath } from "../runtime.js";
+import { createMigratedPool } from "../runtime.js";
 import { runWorkerCycle } from "./run.js";
 import {
   loadFixtureChainSource,
@@ -19,9 +19,7 @@ async function main(): Promise<void> {
   const store = new IndexerStore(pool);
   const source =
     config.mode === "fixture"
-      ? await loadFixtureChainSource(
-          process.env.INDEXER_FIXTURE_PATH ?? getDefaultFixturePath(),
-        )
+      ? await loadFixtureChainSource(config.fixturePath)
       : new ViemChainSource(
           createPublicClient({
             transport: http(config.deployment.rpcUrl, { timeout: 10_000 }),

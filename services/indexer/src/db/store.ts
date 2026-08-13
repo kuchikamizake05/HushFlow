@@ -36,6 +36,8 @@ export interface IngestionBatch {
   latestObservedBlock: string;
   blocks: readonly ChainBlock[];
   logs: readonly RawChainLog[];
+  dataMode: "fixture" | "live";
+  sourceIdentity: string;
 }
 
 export class IndexerStoreError extends Error {
@@ -235,8 +237,11 @@ export class IndexerStore {
   async markHealth(input: {
     chainId: number;
     status: "healthy" | "degraded" | "unavailable";
-    detailCode?: "RPC_UNAVAILABLE" | "DATABASE_UNAVAILABLE";
+    detailCode?:
+      "RPC_UNAVAILABLE" | "DATABASE_UNAVAILABLE" | "REORG_REPLAY_REQUIRED";
     latestObservedBlock?: string;
+    dataMode: "fixture" | "live";
+    sourceIdentity: string;
   }): Promise<void> {
     const cursor = await this.readCursor(input.chainId);
     const indexed = cursor?.blockNumber ?? "0";
@@ -245,14 +250,17 @@ export class IndexerStore {
     await this.pool.query(
       `INSERT INTO indexer_health (
          chain_id, status, latest_indexed_block, latest_observed_block,
-         lag_blocks, detail_code, last_success_at, checked_at
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+         lag_blocks, detail_code, last_success_at, checked_at,
+         data_mode, source_identity
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8,$9)
        ON CONFLICT (chain_id) DO UPDATE SET
          status = EXCLUDED.status,
          latest_indexed_block = EXCLUDED.latest_indexed_block,
          latest_observed_block = EXCLUDED.latest_observed_block,
          lag_blocks = EXCLUDED.lag_blocks,
          detail_code = EXCLUDED.detail_code,
+         data_mode = EXCLUDED.data_mode,
+         source_identity = EXCLUDED.source_identity,
          last_success_at = EXCLUDED.last_success_at,
          checked_at = NOW()`,
       [
@@ -263,6 +271,8 @@ export class IndexerStore {
         lag > 0n ? lag.toString() : "0",
         input.detailCode ?? null,
         input.status === "healthy" ? new Date() : null,
+        input.dataMode,
+        input.sourceIdentity,
       ],
     );
   }
@@ -551,14 +561,17 @@ export class IndexerStore {
       await client.query(
         `INSERT INTO indexer_health (
            chain_id, status, latest_indexed_block, latest_observed_block,
-           lag_blocks, detail_code, last_success_at, checked_at
-         ) VALUES ($1,'healthy',$2,$3,$4,NULL,NOW(),NOW())
+           lag_blocks, detail_code, last_success_at, checked_at,
+           data_mode, source_identity
+         ) VALUES ($1,'healthy',$2,$3,$4,NULL,NOW(),NOW(),$5,$6)
          ON CONFLICT (chain_id) DO UPDATE SET
            status = EXCLUDED.status,
            latest_indexed_block = EXCLUDED.latest_indexed_block,
            latest_observed_block = EXCLUDED.latest_observed_block,
            lag_blocks = EXCLUDED.lag_blocks,
            detail_code = NULL,
+           data_mode = EXCLUDED.data_mode,
+           source_identity = EXCLUDED.source_identity,
            last_success_at = NOW(),
            checked_at = NOW()`,
         [
@@ -566,6 +579,8 @@ export class IndexerStore {
           lastBlock.blockNumber,
           batch.latestObservedBlock,
           lag > 0n ? lag.toString() : "0",
+          batch.dataMode,
+          batch.sourceIdentity,
         ],
       );
       await client.query("COMMIT");

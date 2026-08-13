@@ -6,14 +6,17 @@ import type { DeploymentManifest } from "@hushflow/protocol/deployment";
 import { deploymentStatusDtoSchema } from "@hushflow/protocol/read-api";
 
 import { ReadRepositoryError, type ListRfqInput } from "./repository.js";
+import type { PortfolioPageInput } from "./repository.js";
+import { CursorError } from "./cursor.js";
 
 export interface ReadApiRepository {
   listRfqs(input: ListRfqInput): Promise<unknown>;
   getRfqDetail(rfqId: string): Promise<unknown | null>;
   getRfqProof(rfqId: string): Promise<unknown | null>;
-  getPortfolio(account: string): Promise<unknown>;
+  getPortfolio(account: string, input?: PortfolioPageInput): Promise<unknown>;
   getStats(): Promise<unknown>;
   getHealth(): Promise<unknown>;
+  getMetadata(): Promise<unknown>;
 }
 
 class RequestError extends Error {}
@@ -77,6 +80,24 @@ function parseListInput(url: URL): ListRfqInput {
   };
 }
 
+function parsePortfolioInput(url: URL): PortfolioPageInput {
+  const allowed = new Set(["limit", "cursor"]);
+  for (const key of url.searchParams.keys()) {
+    if (!allowed.has(key) || url.searchParams.getAll(key).length !== 1) {
+      throw new RequestError();
+    }
+  }
+  const limitText = url.searchParams.get("limit") ?? "20";
+  if (!/^[1-9][0-9]*$/.test(limitText)) throw new RequestError();
+  const limit = Number(limitText);
+  if (!Number.isSafeInteger(limit) || limit > 100) throw new RequestError();
+  const cursor = url.searchParams.get("cursor");
+  if (cursor !== null && (cursor.length === 0 || cursor.length > 512)) {
+    throw new RequestError();
+  }
+  return { limit, ...(cursor ? { cursor } : {}) };
+}
+
 function deploymentView(deployment: DeploymentManifest) {
   if (deployment.status === "pending") {
     return deploymentStatusDtoSchema.parse({
@@ -113,6 +134,7 @@ async function route(
 
   if (path === "/deployment") return json(200, deploymentView(deployment));
   if (path === "/health") return json(200, await repository.getHealth());
+  if (path === "/metadata") return json(200, await repository.getMetadata());
   if (path === "/stats") return json(200, await repository.getStats());
   if (path === "/rfqs") {
     return json(200, await repository.listRfqs(parseListInput(url)));
@@ -132,7 +154,10 @@ async function route(
   if (portfolio) {
     return json(
       200,
-      await repository.getPortfolio(parseAddress(portfolio[1]!)),
+      await repository.getPortfolio(
+        parseAddress(portfolio[1]!),
+        parsePortfolioInput(url),
+      ),
     );
   }
   return json(404, { error: "NOT_FOUND" });
@@ -149,11 +174,20 @@ export function createReadApiHandler(
       if (error instanceof RequestError) {
         return json(400, { error: "REQUEST_INVALID" });
       }
+      if (error instanceof CursorError) {
+        return json(400, { error: "INVALID_CURSOR" });
+      }
       if (
         error instanceof ReadRepositoryError &&
         error.code === "DEPLOYMENT_NOT_LIVE"
       ) {
         return json(503, { error: "DEPLOYMENT_NOT_LIVE" });
+      }
+      if (
+        error instanceof ReadRepositoryError &&
+        error.code === "DATABASE_UNAVAILABLE"
+      ) {
+        return json(503, { error: "DATABASE_UNAVAILABLE" });
       }
       return json(500, { error: "INTERNAL_ERROR" });
     }

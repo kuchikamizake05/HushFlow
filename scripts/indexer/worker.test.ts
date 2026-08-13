@@ -78,6 +78,8 @@ class FakeStore implements WorkerStore {
     chainId: number;
     status: string;
     detailCode?: string;
+    dataMode: "fixture" | "live";
+    sourceIdentity: string;
   }) {
     this.health.push(input);
   }
@@ -108,7 +110,10 @@ describe("single indexer worker cycle", () => {
 
     const result = await runWorkerCycle(config, store, source);
 
-    expect(store.reconcileWindow).toHaveBeenCalledWith(114, [block(10), block(11)]);
+    expect(store.reconcileWindow).toHaveBeenCalledWith(114, [
+      block(10),
+      block(11),
+    ]);
     expect(store.readCursor).toHaveBeenCalledTimes(2);
     expect(source.getBlocks).toHaveBeenLastCalledWith(12n, 13n);
     expect(result).toEqual({ fromBlock: "12", toBlock: "13", ingested: true });
@@ -176,6 +181,8 @@ describe("single indexer worker cycle", () => {
         chainId: 114,
         status: "degraded",
         detailCode: "RPC_UNAVAILABLE",
+        dataMode: "fixture",
+        sourceIdentity: "local-demo-v1",
       },
     ]);
     await expect(runWorkerCycle(config, store, source)).resolves.toBeDefined();

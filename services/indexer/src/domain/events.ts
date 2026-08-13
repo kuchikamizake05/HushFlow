@@ -14,6 +14,7 @@ const hex = z
   .string()
   .regex(/^0x(?:[0-9a-fA-F]{2})+$/)
   .transform((value) => value.toLowerCase());
+const ciphertext = hex.refine((value) => (value.length - 2) / 2 <= 4_096);
 
 const common = {
   schemaVersion: z.literal(1),
@@ -45,7 +46,7 @@ const decodedEventSchema = z.discriminatedUnion("eventName", [
       quoteCap: positiveDecimal,
       quoteDeadline: positiveDecimal,
       resolutionDeadline: positiveDecimal,
-      sellerCiphertext: hex,
+      sellerCiphertext: ciphertext,
     }),
   }),
   z.strictObject({
@@ -54,7 +55,7 @@ const decodedEventSchema = z.discriminatedUnion("eventName", [
     args: z.strictObject({
       rfqId: positiveDecimal,
       provider: address,
-      ciphertext: hex,
+      ciphertext,
     }),
   }),
   z.strictObject({

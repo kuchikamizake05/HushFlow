@@ -33,6 +33,11 @@ export interface ListRfqInput {
   provider?: string;
 }
 
+export interface PortfolioPageInput {
+  limit: number;
+  cursor?: string;
+}
+
 export class ReadRepositoryError extends Error {
   readonly code: string;
 
@@ -95,6 +100,14 @@ export class ReadRepository {
     };
   }
 
+  private async query(text: string, values?: unknown[]) {
+    try {
+      return await this.pool.query(text, values);
+    } catch {
+      throw new ReadRepositoryError("DATABASE_UNAVAILABLE");
+    }
+  }
+
   async listRfqs(input: ListRfqInput) {
     if (
       !Number.isInteger(input.limit) ||
@@ -122,7 +135,7 @@ export class ReadRepository {
       );
     }
     values.push(input.limit + 1);
-    const result = await this.pool.query(
+    const result = await this.query(
       `SELECT r.*, o.winning_provider, o.winning_quote
          FROM rfqs r
          LEFT JOIN rfq_outcomes o USING (chain_id, rfq_id)
@@ -144,7 +157,7 @@ export class ReadRepository {
   }
 
   private async summary(rfqId: string) {
-    const result = await this.pool.query(
+    const result = await this.query(
       `SELECT r.*, o.winning_provider, o.winning_quote
          FROM rfqs r
          LEFT JOIN rfq_outcomes o USING (chain_id, rfq_id)
@@ -157,11 +170,11 @@ export class ReadRepository {
   async getRfqDetail(rfqId: string) {
     const summary = await this.summary(rfqId);
     if (!summary) return null;
-    const rfq = await this.pool.query(
+    const rfq = await this.query(
       "SELECT seller_ciphertext FROM rfqs WHERE chain_id = $1 AND rfq_id = $2",
       [this.options.chainId, rfqId],
     );
-    const providers = await this.pool.query(
+    const providers = await this.query(
       `SELECT position, provider, quote_ciphertext, submitted_at_block,
               source_transaction_hash
          FROM rfq_providers
@@ -169,7 +182,7 @@ export class ReadRepository {
         ORDER BY position`,
       [this.options.chainId, rfqId],
     );
-    const activity = await this.pool.query(
+    const activity = await this.query(
       `SELECT l.event_name, l.event_args, l.transaction_hash, l.block_number,
               l.log_index, b.block_timestamp
          FROM chain_logs l
@@ -207,7 +220,7 @@ export class ReadRepository {
   }
 
   async getRfqProof(rfqId: string) {
-    const result = await this.pool.query(
+    const result = await this.query(
       `SELECT r.seller_ciphertext, r.action_id,
               o.result_type, o.winning_provider, o.winning_quote,
               o.result_nonce, o.source_transaction_hash
@@ -218,7 +231,7 @@ export class ReadRepository {
     );
     const row = result.rows[0];
     if (!row) return null;
-    const providers = await this.pool.query(
+    const providers = await this.query(
       `SELECT provider, quote_ciphertext
          FROM rfq_providers
         WHERE chain_id = $1 AND rfq_id = $2
@@ -247,47 +260,71 @@ export class ReadRepository {
     });
   }
 
-  async getPortfolio(accountInput: string) {
+  async getPortfolio(
+    accountInput: string,
+    input: PortfolioPageInput = { limit: 100 },
+  ) {
     if (!this.options.fxrpToken || !this.options.usdt0Token) {
       throw new ReadRepositoryError("DEPLOYMENT_NOT_LIVE");
     }
     const account = getAddress(accountInput);
-    const [sellerPage, providerPage] = await Promise.all([
-      this.listRfqs({ limit: 100, seller: account }),
-      this.listRfqs({ limit: 100, provider: account }),
-    ]);
-    const rfqs = [...sellerPage.items, ...providerPage.items]
-      .filter(
-        (rfq, index, values) =>
-          values.findIndex((candidate) => candidate.rfqId === rfq.rfqId) ===
-          index,
-      )
-      .sort((left, right) =>
-        BigInt(left.rfqId) > BigInt(right.rfqId) ? -1 : 1,
-      );
+    if (
+      !Number.isInteger(input.limit) ||
+      input.limit < 1 ||
+      input.limit > 100
+    ) {
+      throw new ReadRepositoryError("READ_LIMIT_INVALID");
+    }
+    const values: unknown[] = [this.options.chainId, account.toLowerCase()];
+    const cursorClause = input.cursor
+      ? `AND r.rfq_id < $${values.push(decodeRfqCursor(input.cursor).rfqId)}`
+      : "";
+    values.push(input.limit + 1);
+    const result = await this.query(
+      `SELECT r.*, o.winning_provider, o.winning_quote,
+              c.fxrp_amount, c.usdt0_amount, c.claimed
+         FROM rfqs r
+         LEFT JOIN rfq_outcomes o USING (chain_id, rfq_id)
+         LEFT JOIN claims c
+           ON c.chain_id = r.chain_id
+          AND c.rfq_id = r.rfq_id
+          AND c.account = $2
+        WHERE r.chain_id = $1
+          AND (
+            r.seller = $2 OR EXISTS (
+              SELECT 1 FROM rfq_providers p
+               WHERE p.chain_id = r.chain_id
+                 AND p.rfq_id = r.rfq_id
+                 AND p.provider = $2
+            )
+          )
+          ${cursorClause}
+        ORDER BY r.rfq_id DESC
+        LIMIT $${values.length}`,
+      values,
+    );
+    const hasMore = result.rows.length > input.limit;
+    const rows = result.rows.slice(0, input.limit);
+    const rfqs = rows.map(summaryFromRow);
     const claims: Array<z.input<typeof claimableDtoSchema>> = [];
 
-    for (const rfq of rfqs) {
-      const claimed = await this.pool.query(
-        `SELECT fxrp_amount, usdt0_amount
-           FROM claims
-          WHERE chain_id = $1 AND rfq_id = $2 AND account = $3`,
-        [this.options.chainId, rfq.rfqId, account.toLowerCase()],
-      );
+    for (const [index, rfq] of rfqs.entries()) {
+      const row = rows[index]!;
       let fxrpAmount = "0";
       let usdt0Amount = "0";
-      const claim = claimed.rows[0];
-      if (claim) {
-        fxrpAmount = String(claim.fxrp_amount);
-        usdt0Amount = String(claim.usdt0_amount);
+      const hasClaim =
+        row.fxrp_amount !== null && row.fxrp_amount !== undefined;
+      if (hasClaim) {
+        fxrpAmount = String(row.fxrp_amount);
+        usdt0Amount = String(row.usdt0_amount);
       } else if (rfq.status !== "OPEN") {
-        const isSeller = rfq.seller === account;
+        const isSeller = rfq.seller.toLowerCase() === account.toLowerCase();
         if (isSeller) {
           if (rfq.status === "SETTLED") usdt0Amount = rfq.winningQuote ?? "0";
           else fxrpAmount = rfq.lotAmount;
         } else if (
           rfq.status === "SETTLED" &&
-          rfq.winningProvider === account
+          rfq.winningProvider?.toLowerCase() === account.toLowerCase()
         ) {
           fxrpAmount = rfq.lotAmount;
           usdt0Amount = (
@@ -305,19 +342,25 @@ export class ReadRepository {
         fxrpAmount,
         usdt0Token: this.options.usdt0Token,
         usdt0Amount,
-        claimed: Boolean(claim),
+        claimed: hasClaim ? Boolean(row.claimed) : false,
       });
     }
-    return portfolioDtoSchema.parse({
+    const portfolio = portfolioDtoSchema.parse({
       schemaVersion: 1,
       account,
       rfqs,
       claims,
     });
+    const last = rfqs.at(-1);
+    return {
+      ...portfolio,
+      nextCursor:
+        hasMore && last ? encodeRfqCursor({ rfqId: last.rfqId }) : null,
+    };
   }
 
   async getStats() {
-    const result = await this.pool.query(
+    const result = await this.query(
       `SELECT
          count(*)::text AS rfq_count,
          count(*) FILTER (WHERE r.status = 'OPEN')::text AS open_rfq_count,
@@ -331,7 +374,7 @@ export class ReadRepository {
        GROUP BY r.chain_id`,
       [this.options.chainId],
     );
-    const health = await this.pool.query(
+    const health = await this.query(
       `SELECT latest_indexed_block, checked_at
          FROM indexer_health
         WHERE chain_id = $1`,
@@ -362,7 +405,7 @@ export class ReadRepository {
   }
 
   async getHealth() {
-    const result = await this.pool.query(
+    const result = await this.query(
       `SELECT status, latest_indexed_block, latest_observed_block,
               lag_blocks, checked_at, detail_code
          FROM indexer_health
@@ -381,5 +424,23 @@ export class ReadRepository {
       checkedAt: (row.checked_at as Date).toISOString(),
       ...(row.detail_code ? { detailCode: row.detail_code } : {}),
     });
+  }
+
+  async getMetadata() {
+    const result = await this.query(
+      `SELECT data_mode, source_identity
+         FROM indexer_health
+        WHERE chain_id = $1`,
+      [this.options.chainId],
+    );
+    const row = result.rows[0];
+    if (!row?.data_mode || !row.source_identity) {
+      throw new ReadRepositoryError("INDEXER_METADATA_UNAVAILABLE");
+    }
+    return {
+      schemaVersion: 1 as const,
+      dataMode: String(row.data_mode) as "fixture" | "live",
+      sourceIdentity: String(row.source_identity),
+    };
   }
 }

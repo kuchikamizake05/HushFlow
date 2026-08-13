@@ -44,7 +44,8 @@ describe("indexer SQL migrations", () => {
 
   it("adds provenance and a 4096-byte ciphertext cap without rewriting 001", async () => {
     const migrations = await loadMigrations(migrationDirectory);
-    const hardening = migrations.find(({ version }) => version === "002")?.sql ?? "";
+    const hardening =
+      migrations.find(({ version }) => version === "002")?.sql ?? "";
     expect(hardening).toContain("data_mode");
     expect(hardening).toContain("source_identity");
     expect(hardening).toContain("4096");
@@ -111,7 +112,7 @@ describe("indexer SQL migrations", () => {
     await applyMigrations(client, migrations);
     await applyMigrations(client, migrations);
 
-    expect(client.applied).toHaveLength(1);
+    expect(client.applied).toHaveLength(2);
     expect(client.calls.filter(({ text }) => text === "BEGIN")).toHaveLength(2);
     expect(client.calls.filter(({ text }) => text === "COMMIT")).toHaveLength(
       2,
