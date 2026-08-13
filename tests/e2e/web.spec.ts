@@ -30,7 +30,7 @@ test.describe("M4B safe fixture journey", () => {
     ).toBeDisabled();
     await expect(page).not.toHaveURL(/minimum|quote=/i);
     await expect(page.locator("body")).toContainText(
-      "Live deployment and direct contract preflight are required.",
+      "DEPLOYMENT_PENDING",
     );
     expect(
       await page.evaluate(() => Object.values(localStorage)),
