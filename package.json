@@ -24,8 +24,10 @@
     "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
     "preflight:fcc": "bash scripts/setup/check-fcc-access.sh",
     "preflight:fcc-container": "bash scripts/setup/check-fcc-container-config.sh",
+    "preflight:container-scan": "bash scripts/setup/check-container-scan.sh",
     "demo:plan": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-demo.ts",
     "plan:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-live.ts",
+    "release:drills": "node --import tsx scripts/release/prepare-drills.ts",
     "generate:protocol-abi": "tsx scripts/generate-protocol-abi.ts",
     "e2e:web": "pnpm --filter @hushflow/protocol build && playwright test"
   },
