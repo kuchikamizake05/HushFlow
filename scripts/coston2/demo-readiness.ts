@@ -80,16 +80,44 @@ const invalid = (
   actions,
 });
 
+const blocked = (
+  reasons: readonly string[],
+  requirements: DemoReadiness["requirements"],
+): DemoReadiness => ({
+  classification: "CONTROLLED_TESTNET_ACTIVITY",
+  state: "BLOCKED",
+  reasons,
+  requirements,
+  wallets: null,
+  actions,
+});
+
 export const buildDemoReadiness = (input: DemoReadinessInput): DemoReadiness => {
   const requirements = publicRequirements(input);
   let seller: Address;
   let providerA: Address;
   let providerB: Address;
 
+  const missingWallets = [
+    ["HUSHFLOW_SELLER_ADDRESS", input.seller],
+    ["HUSHFLOW_PROVIDER_A_ADDRESS", input.providerA],
+    ["HUSHFLOW_PROVIDER_B_ADDRESS", input.providerB],
+  ].flatMap(([name, value]) => (value ? [] : [`MISSING:${name}`]));
+
+  if (missingWallets.length > 0) {
+    const reasons = [
+      ...(input.deployment.status === "pending"
+        ? [input.deployment.blockingReason ?? "DEPLOYMENT_PENDING"]
+        : []),
+      ...missingWallets,
+      ...requirements
+        .filter((requirement) => !requirement.present)
+        .map((requirement) => `MISSING:${requirement.name}`),
+    ];
+    return blocked(reasons, requirements);
+  }
+
   try {
-    if (!input.seller || !input.providerA || !input.providerB) {
-      return invalid(["SCENARIO_WALLET_MISSING"], requirements);
-    }
     seller = getAddress(input.seller);
     providerA = getAddress(input.providerA);
     providerB = getAddress(input.providerB);
