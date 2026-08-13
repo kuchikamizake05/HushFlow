@@ -6,6 +6,7 @@ import type { RfqStatus } from "@hushflow/protocol/constants";
 import {
   activityDtoSchema,
   createCursorPageSchema,
+  dataProvenanceDtoSchema,
   indexerHealthDtoSchema,
   portfolioDtoSchema,
   protocolStatsDtoSchema,
@@ -435,10 +436,9 @@ export class ReadRepository {
     if (!row?.data_mode || !row.source_identity) {
       throw new ReadRepositoryError("INDEXER_METADATA_UNAVAILABLE");
     }
-    return {
-      schemaVersion: 1 as const,
-      dataMode: String(row.data_mode) as "fixture" | "live",
-      sourceIdentity: String(row.source_identity),
-    };
+    return dataProvenanceDtoSchema.parse({
+      mode: row.data_mode,
+      sourceId: row.source_identity,
+    });
   }
 }

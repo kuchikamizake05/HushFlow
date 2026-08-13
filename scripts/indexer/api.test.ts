@@ -76,9 +76,8 @@ function repository(): ReadApiRepository {
       checkedAt: "2026-08-12T12:00:00.000Z",
     })),
     getMetadata: vi.fn(async () => ({
-      schemaVersion: 1 as const,
-      dataMode: "fixture" as const,
-      sourceIdentity: "local-demo-v1",
+      mode: "fixture" as const,
+      sourceId: "local-demo-v1",
     })),
   };
 }
