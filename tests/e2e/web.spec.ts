@@ -29,9 +29,7 @@ test.describe("M4B safe fixture journey", () => {
       page.getByRole("button", { name: "Create RFQ after live preflight" }),
     ).toBeDisabled();
     await expect(page).not.toHaveURL(/minimum|quote=/i);
-    await expect(page.locator("body")).toContainText(
-      "DEPLOYMENT_PENDING",
-    );
+    await expect(page.locator("body")).toContainText("DEPLOYMENT_PENDING");
     expect(
       await page.evaluate(() => Object.values(localStorage)),
     ).not.toContain(privateAmount);
