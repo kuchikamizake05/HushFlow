@@ -98,6 +98,21 @@ export const buildDemoReadiness = (input: DemoReadinessInput): DemoReadiness => 
   let providerA: Address;
   let providerB: Address;
 
+  const suppliedWallets = [input.seller, input.providerA, input.providerB];
+  const hasInvalidWallet = suppliedWallets.some((wallet) => {
+    if (!wallet) return false;
+    try {
+      getAddress(wallet);
+      return false;
+    } catch {
+      return true;
+    }
+  });
+
+  if (hasInvalidWallet) {
+    return invalid(["SCENARIO_WALLET_INVALID"], requirements);
+  }
+
   const missingWallets = [
     ["HUSHFLOW_SELLER_ADDRESS", input.seller],
     ["HUSHFLOW_PROVIDER_A_ADDRESS", input.providerA],
@@ -117,13 +132,9 @@ export const buildDemoReadiness = (input: DemoReadinessInput): DemoReadiness => 
     return blocked(reasons, requirements);
   }
 
-  try {
-    seller = getAddress(input.seller);
-    providerA = getAddress(input.providerA);
-    providerB = getAddress(input.providerB);
-  } catch {
-    return invalid(["SCENARIO_WALLET_INVALID"], requirements);
-  }
+  seller = getAddress(input.seller!);
+  providerA = getAddress(input.providerA!);
+  providerB = getAddress(input.providerB!);
 
   if (new Set([seller, providerA, providerB].map((wallet) => wallet.toLowerCase())).size !== 3) {
     return invalid(["SCENARIO_WALLETS_NOT_DISTINCT"], requirements);
