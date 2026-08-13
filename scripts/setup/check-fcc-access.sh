@@ -11,8 +11,6 @@ for name in \
   FCC_INDEXER_DB_PASSWORD \
   FCC_EXT_PROXY_URL \
   FCC_NORMAL_PROXY_URL \
-  FCC_TEE_NODE_IMAGE \
-  FCC_TEE_NODE_PIN_SOURCE \
   NGROK_AUTHTOKEN; do
   value="$(printenv "$name" 2>/dev/null || true)"
   if [[ -n "$value" ]]; then
@@ -34,7 +32,7 @@ if [[ -n "$ext_proxy_url" ]]; then
   fi
 fi
 
-if [[ -n "${FCC_TEE_NODE_IMAGE:-}" ]] && ! bash scripts/setup/check-fcc-container-config.sh; then
+if ! bash scripts/setup/check-fcc-container-config.sh; then
   missing=$((missing + 1))
 fi
 

@@ -1,10 +1,13 @@
-# M1 FCC two-process template. It is deliberately not directly runnable:
-# FCC_TEE_NODE_IMAGE must be the organizer-approved immutable tee-node digest.
+# M1 FCC official-source template. Compose config and preflight do not build,
+# pull, or run containers. Building remains a separate operator action.
 name: hushflow-fcc
 
 services:
   tee-node:
-    image: ${FCC_TEE_NODE_IMAGE:?Set an organizer-approved tee-node image digest first}
+    build:
+      context: ../..
+      dockerfile: infra/fcc/tee-node.Dockerfile
+    image: hushflow/tee-node:v0.0.24-source
     restart: "no"
 
   hushflow-extension:
@@ -14,8 +17,8 @@ services:
     depends_on:
       tee-node:
         condition: service_started
-    # The extension deliberately calls the tee-node at 127.0.0.1:SIGN_PORT.
-    # Sharing the namespace preserves that private-only wire boundary.
+    # The extension calls the tee-node at 127.0.0.1:SIGN_PORT. The shared
+    # namespace keeps this wire private; neither service publishes a port.
     network_mode: service:tee-node
     environment:
       EXTENSION_PORT: "${EXTENSION_PORT:-7702}"

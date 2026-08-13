@@ -1,0 +1,21 @@
+# M1 FCC immutable-image override. Run the preflight before rendering or using
+# this template. No tee-node or extension port is published.
+name: hushflow-fcc
+
+services:
+  tee-node:
+    image: ${FCC_TEE_NODE_IMAGE:?Set a digest-pinned tee-node image first}
+    restart: "no"
+
+  hushflow-extension:
+    build:
+      context: ../..
+      dockerfile: services/fcc-extension/Dockerfile
+    depends_on:
+      tee-node:
+        condition: service_started
+    network_mode: service:tee-node
+    environment:
+      EXTENSION_PORT: "${EXTENSION_PORT:-7702}"
+      SIGN_PORT: "${SIGN_PORT:-7701}"
+    restart: "no"
