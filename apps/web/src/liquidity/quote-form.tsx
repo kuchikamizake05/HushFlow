@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 
-import { getQuoteGuard } from "./quote-guard";
+import { getWriteGuard, pendingWritePreflight } from "../writes/preflight";
 
 export function QuoteForm() {
   const [quote, setQuote] = useState("");
-  const guard = getQuoteGuard({ mode: "fixture", rpc: "unavailable" });
+  const guard = getWriteGuard(pendingWritePreflight);
 
   return (
     <form className="trade-form" onSubmit={(event) => event.preventDefault()}>
@@ -25,8 +25,9 @@ export function QuoteForm() {
         Submit quote after live preflight
       </button>
       <p role="status">
-        Private quote stays only in this form until encryption. Fixture mode
-        cannot submit.
+        {guard.enabled
+          ? "Direct RPC preflight ready."
+          : `${guard.reason}: private quote stays only in this form until encryption.`}
       </p>
     </form>
   );

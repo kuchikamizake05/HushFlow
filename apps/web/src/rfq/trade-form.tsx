@@ -2,18 +2,11 @@
 
 import { useState } from "react";
 
-import type { WritePreflight } from "../writes/preflight";
-import { getWriteGuard } from "../writes/preflight";
-
-const localFixturePreflight: WritePreflight = {
-  mode: "fixture",
-  deployment: "pending",
-  rpc: "unavailable",
-};
+import { getWriteGuard, pendingWritePreflight } from "../writes/preflight";
 
 export function TradeForm() {
   const [privateMinimum, setPrivateMinimum] = useState("");
-  const guard = getWriteGuard(localFixturePreflight);
+  const guard = getWriteGuard(pendingWritePreflight);
 
   return (
     <form className="trade-form" onSubmit={(event) => event.preventDefault()}>
@@ -52,7 +45,7 @@ export function TradeForm() {
       <p role="status">
         {guard.enabled
           ? "Direct RPC preflight ready."
-          : "Live deployment and direct contract preflight are required. Private minimum stays only in this form until encryption."}
+          : `${guard.reason}: live deployment, Coston2 chain, contract code, direct RPC, and wallet connection are required. Private minimum stays only in this form until encryption.`}
       </p>
     </form>
   );
