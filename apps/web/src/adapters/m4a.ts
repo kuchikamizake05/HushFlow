@@ -1,4 +1,8 @@
-import { isReadPath, metadataSchema } from "./contracts";
+import {
+  dataProvenanceSchema,
+  isReadPath,
+  parseCoreReadModel,
+} from "./contracts";
 
 export type ReadErrorCode = "READ_INVALID" | "READ_UNAVAILABLE";
 
@@ -47,14 +51,14 @@ export async function loadReadModel(
 
   if (path === "/metadata") {
     const body = await fetchJson(path, fetcher);
-    const parsed = metadataSchema.safeParse(body);
+    const parsed = dataProvenanceSchema.safeParse(body);
     if (!parsed.success) {
       throw new ReadModelError("READ_INVALID");
     }
     return parsed.data;
   }
 
-  const metadata = metadataSchema.safeParse(
+  const metadata = dataProvenanceSchema.safeParse(
     await fetchJson("/metadata", fetcher),
   );
   if (!metadata.success) throw new ReadModelError("READ_INVALID");
@@ -65,5 +69,9 @@ export async function loadReadModel(
     throw new ReadModelError("READ_INVALID");
   }
 
-  return body;
+  try {
+    return parseCoreReadModel(path, body);
+  } catch {
+    throw new ReadModelError("READ_INVALID");
+  }
 }

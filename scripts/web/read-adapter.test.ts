@@ -85,4 +85,51 @@ describe("M4B read adapter", () => {
     });
     expect(paths).toEqual(["/metadata", "/rfqs"]);
   });
+
+  it("uses frozen shared schemas for deployment and health", async () => {
+    const metadata = { mode: "live", sourceId: "coston2-indexer" };
+    await expect(
+      loadReadModel(
+        "/deployment",
+        async (path) =>
+          new Response(
+            JSON.stringify(
+              path === "/metadata"
+                ? metadata
+                : {
+                    schemaVersion: 1,
+                    network: "coston2",
+                    chainId: 114,
+                    status: "pending",
+                    blockingReason: "FCC_ORGANIZER_ACCESS",
+                    updatedAt: "2026-08-13T10:00:00.000Z",
+                  },
+            ),
+          ),
+      ),
+    ).resolves.toMatchObject({ status: "pending" });
+
+    await expect(
+      loadReadModel(
+        "/health",
+        async (path) =>
+          new Response(
+            JSON.stringify(
+              path === "/metadata"
+                ? metadata
+                : {
+                    schemaVersion: 1,
+                    status: "degraded",
+                    chainId: 114,
+                    latestIndexedBlock: "1",
+                    latestObservedBlock: "2",
+                    lagBlocks: "1",
+                    checkedAt: "2026-08-13T10:00:00.000Z",
+                    detailCode: "REORG_REPLAY_REQUIRED",
+                  },
+            ),
+          ),
+      ),
+    ).resolves.toMatchObject({ detailCode: "REORG_REPLAY_REQUIRED" });
+  });
 });
