@@ -12,6 +12,7 @@ import {
   protocolStatsDtoSchema,
   rfqDetailDtoSchema,
   rfqProofDtoSchema,
+  rfqProofCenterDtoV2Schema,
   rfqSummaryDtoSchema,
 } from "@hushflow/protocol/read-api";
 import type { claimableDtoSchema } from "@hushflow/protocol/read-api";
@@ -258,6 +259,28 @@ export class ReadRepository {
             transactionHash: row.source_transaction_hash,
           }
         : null,
+    });
+  }
+
+  async getRfqProofCenterV2(rfqId: string) {
+    const exists = await this.query(
+      `SELECT 1
+         FROM rfqs
+        WHERE chain_id = $1 AND rfq_id = $2`,
+      [this.options.chainId, rfqId],
+    );
+    if (!exists.rows[0]) return null;
+
+    const provenance = await this.getMetadata();
+    return rfqProofCenterDtoV2Schema.parse({
+      schemaVersion: 2,
+      evidenceStatus: "PARTIAL",
+      rfqId,
+      provenance,
+      reason:
+        provenance.mode === "fixture"
+          ? "FIXTURE_DATA"
+          : "SIGNED_RESULT_UNAVAILABLE",
     });
   }
 

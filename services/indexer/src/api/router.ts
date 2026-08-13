@@ -13,6 +13,7 @@ export interface ReadApiRepository {
   listRfqs(input: ListRfqInput): Promise<unknown>;
   getRfqDetail(rfqId: string): Promise<unknown | null>;
   getRfqProof(rfqId: string): Promise<unknown | null>;
+  getRfqProofCenterV2(rfqId: string): Promise<unknown | null>;
   getPortfolio(account: string, input?: PortfolioPageInput): Promise<unknown>;
   getStats(): Promise<unknown>;
   getHealth(): Promise<unknown>;
@@ -140,6 +141,13 @@ async function route(
     return json(200, await repository.listRfqs(parseListInput(url)));
   }
 
+  const proofCenterV2 = /^\/v2\/rfqs\/([^/]+)\/proof$/.exec(path);
+  if (proofCenterV2) {
+    const value = await repository.getRfqProofCenterV2(
+      parseRfqId(proofCenterV2[1]!),
+    );
+    return value ? json(200, value) : json(404, { error: "NOT_FOUND" });
+  }
   const proof = /^\/rfqs\/([^/]+)\/proof$/.exec(path);
   if (proof) {
     const value = await repository.getRfqProof(parseRfqId(proof[1]!));
