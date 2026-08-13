@@ -6,6 +6,7 @@ packages:
 
 allowBuilds:
   esbuild: true
+  sharp: false
 
 overrides:
   "brace-expansion@>=4.0.0 <5.0.9": 5.0.9
