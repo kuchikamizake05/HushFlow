@@ -13,4 +13,14 @@ describe("repository verification boundaries", () => {
     expect(prettierignore.split(/\r?\n/)).toContain(".claude/");
     expect(prettierignore.split(/\r?\n/)).toContain("**/.next/");
   });
+
+  it("maps web linting to the web TypeScript project", async () => {
+    const [eslintConfig, readContracts] = await Promise.all([
+      readFile("eslint.config.mjs", "utf8"),
+      readFile("apps/web/src/adapters/contracts.ts", "utf8"),
+    ]);
+
+    expect(eslintConfig).toContain('project: "./apps/web/tsconfig.json"');
+    expect(readContracts).toContain('import type { z } from "zod";');
+  });
 });
