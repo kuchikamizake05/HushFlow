@@ -49,9 +49,9 @@ export type DemoReadinessInput = Readonly<{
     status: "pending" | "live";
     blockingReason?: string;
   }>;
-  seller?: string;
-  providerA?: string;
-  providerB?: string;
+  seller?: string | undefined;
+  providerA?: string | undefined;
+  providerB?: string | undefined;
   requirements: Partial<Record<DemoRequirementName, boolean>>;
   [ignored: string]: unknown;
 }>;
