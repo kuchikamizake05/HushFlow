@@ -1,7 +1,6 @@
-import { spawnSync } from "node:child_process";
-
 import { describe, expect, it } from "vitest";
 
+import { buildDemoCliReport } from "../coston2/demo-cli.js";
 import {
   buildDemoReadiness,
   demoRequirementNames,
@@ -90,38 +89,19 @@ describe("M5 demo readiness", () => {
 
   it("prints a sanitized blocked CLI report without environment setup", () => {
     const secret = "never-print-this-private-key";
-    const result = spawnSync(
-      process.execPath,
-      ["--import", "tsx", "scripts/coston2/prepare-demo.ts"],
-      {
-        cwd: process.cwd(),
-        encoding: "utf8",
-        env: { PATH: process.env.PATH, HUSHFLOW_DEPLOYER_PRIVATE_KEY: secret },
-      },
-    );
+    const result = buildDemoCliReport({
+      HUSHFLOW_DEPLOYER_PRIVATE_KEY: secret,
+    });
 
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ state: "BLOCKED" });
-    expect(result.stdout).not.toContain(secret);
+    expect(result).toMatchObject({ state: "BLOCKED" });
+    expect(JSON.stringify(result)).not.toContain(secret);
   });
 
   it("reports malformed public CLI input without echoing it", () => {
     const malformed = "not-an-address";
-    const result = spawnSync(
-      process.execPath,
-      ["--import", "tsx", "scripts/coston2/prepare-demo.ts"],
-      {
-        cwd: process.cwd(),
-        encoding: "utf8",
-        env: {
-          PATH: process.env.PATH,
-          HUSHFLOW_SELLER_ADDRESS: malformed,
-        },
-      },
-    );
+    const result = buildDemoCliReport({ HUSHFLOW_SELLER_ADDRESS: malformed });
 
-    expect(result.status).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ state: "INVALID" });
-    expect(result.stdout).not.toContain(malformed);
+    expect(result).toMatchObject({ state: "INVALID" });
+    expect(JSON.stringify(result)).not.toContain(malformed);
   });
 });
