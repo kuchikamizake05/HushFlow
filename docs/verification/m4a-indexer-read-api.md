@@ -13,7 +13,7 @@ Date: 2026-08-13
 - Deterministic lifecycle projection for open RFQs, encrypted quotes, FCC instructions/results, settlement, invalid/no-quote outcomes, timeouts, and claims.
 - Idempotent restart replay and bounded reorg reconciliation wired into the worker. The configured reconciliation window is read in RPC chunks of at most 1,000 blocks; canonical block number, hash, and parent-hash continuity are verified before committing progress. A deep reorg fails closed with `REORG_REPLAY_REQUIRED`.
 - Bounded viem RPC reads plus a coherent local fixture source for offline verification.
-- Versioned DTOs and strict read-only HTTP routes for deployment state, data provenance, RFQ lists/details/activity/proofs, cursor-paginated portfolio claims, protocol statistics, and indexer health. Proof v1 remains compatible; Proof Center v2 explicitly distinguishes `PARTIAL` from signed-result `VERIFIED` evidence.
+- Versioned DTOs and strict read-only HTTP routes for deployment state, data provenance, RFQ lists/details/activity/proofs, cursor-paginated portfolio claims, protocol statistics, and indexer health. Proof v1 remains compatible; `GET /v2/rfqs/:id/proof` exposes Proof Center v2 and explicitly distinguishes `PARTIAL` from signed-result `VERIFIED` evidence. Fixture data returns `PARTIAL/FIXTURE_DATA` and never invents a signature.
 - Opaque cursor pagination, bounded filters and 4,096-byte ciphertexts, strict request validation, method rejection, `400 INVALID_CURSOR`, redacted server errors, and stable `503 DATABASE_UNAVAILABLE` behavior.
 - Separate minimal container entry points for the worker and API. The runtime image uses a digest-pinned Node 24.18 base and installs only the indexer's production dependency closure.
 
@@ -21,7 +21,7 @@ Date: 2026-08-13
 
 | Gate | Result |
 | --- | --- |
-| TypeScript tests | 239 passed, 0 failed |
+| TypeScript tests | 242 passed, 0 failed |
 | TypeScript coverage | 92.01% lines, 90.63% statements, 95.39% functions, 81.29% branches |
 | Solidity regression tests | 52 passed, 0 failed, 0 skipped |
 | Indexer lint, typecheck, build, and targeted formatting | passed |
@@ -49,6 +49,7 @@ The final two-process container smoke also reproduced a cold-start migration rac
 - `8b23179` and `5952ff2`: M4A adaptation to the frozen DTO and corrected seller entitlement.
 - `897db0e` and `11d6d89`: migration-race RED/GREEN checkpoints for simultaneous API/worker schema startup.
 - `ec2f4db` and `7aba0f9`: provenance-contract RED/GREEN checkpoints; `/metadata` now serves the frozen `{ mode, sourceId }` DTO.
+- `14c6c8f` and `84adb90`: Proof Center v2 endpoint RED/GREEN checkpoints.
 
 ## Not yet demonstrated
 
