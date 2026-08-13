@@ -10,7 +10,7 @@ export function AppShell({
   provenance,
 }: {
   children: ReactNode;
-  provenance: DataProvenance;
+  provenance: DataProvenance | null;
 }) {
   return (
     <div className="app-shell">

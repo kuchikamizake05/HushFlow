@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ReadModelError,
+  loadServerReadModel,
   loadReadModel,
 } from "../../apps/web/src/adapters/m4a.js";
 import { fixtureReadModel } from "../../apps/web/src/adapters/fixture.js";
@@ -131,5 +132,25 @@ describe("M4B read adapter", () => {
           ),
       ),
     ).resolves.toMatchObject({ detailCode: "REORG_REPLAY_REQUIRED" });
+  });
+
+  it("keeps the upstream URL server-only and requires it explicitly", async () => {
+    await expect(loadServerReadModel("/metadata")).rejects.toEqual(
+      new ReadModelError("READ_UNAVAILABLE"),
+    );
+    await expect(
+      loadServerReadModel(
+        "/metadata",
+        "https://indexer.internal.example",
+        async (url) => {
+          expect(url.toString()).toBe(
+            "https://indexer.internal.example/metadata",
+          );
+          return new Response(
+            JSON.stringify({ mode: "live", sourceId: "coston2-indexer" }),
+          );
+        },
+      ),
+    ).resolves.toEqual({ mode: "live", sourceId: "coston2-indexer" });
   });
 });

@@ -75,3 +75,14 @@ export async function loadReadModel(
     throw new ReadModelError("READ_INVALID");
   }
 }
+
+export async function loadServerReadModel(
+  path: string,
+  upstreamBaseUrl = process.env.M4A_READ_API_URL,
+  serverFetcher: (url: URL, init: RequestInit) => Promise<Response> = fetch,
+): Promise<unknown> {
+  if (!upstreamBaseUrl) throw new ReadModelError("READ_UNAVAILABLE");
+  return loadReadModel(path, (target, init) =>
+    serverFetcher(new URL(target, upstreamBaseUrl), init),
+  );
+}

@@ -32,4 +32,9 @@ describe("M4B application shell", () => {
     });
     expect(banner?.props.children).toContain("Live indexed data");
   });
+
+  it("renders an unavailable state rather than relabelling it as fixture data", () => {
+    const banner = DataStatusBanner({ provenance: null });
+    expect(banner?.props.children).toContain("Read data unavailable");
+  });
 });
