@@ -59,8 +59,30 @@ describe("M4B read adapter", () => {
     await expect(
       loadReadModel(
         "/rfqs",
-        async () => new Response(JSON.stringify({ items: [] })),
+        async (path) =>
+          new Response(
+            JSON.stringify(
+              path === "/metadata"
+                ? { mode: "live", sourceId: "coston2-indexer" }
+                : { items: [] },
+            ),
+          ),
       ),
     ).resolves.toEqual({ items: [] });
+  });
+
+  it("requires valid provenance before a downstream read", async () => {
+    const paths: string[] = [];
+    const fetcher = async (path: string) => {
+      paths.push(path);
+      return path === "/metadata"
+        ? new Response(JSON.stringify({ mode: "fixture", sourceId: "local" }))
+        : new Response(JSON.stringify({ items: [] }));
+    };
+
+    await expect(loadReadModel("/rfqs", fetcher)).resolves.toEqual({
+      items: [],
+    });
+    expect(paths).toEqual(["/metadata", "/rfqs"]);
   });
 });

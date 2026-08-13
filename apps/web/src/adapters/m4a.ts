@@ -17,14 +17,7 @@ export type ReadFetcher = (
   init: RequestInit,
 ) => Promise<Response>;
 
-export async function loadReadModel(
-  path: string,
-  fetcher: ReadFetcher = fetch,
-): Promise<unknown> {
-  if (!isReadPath(path)) {
-    throw new ReadModelError("READ_INVALID");
-  }
-
+async function fetchJson(path: string, fetcher: ReadFetcher): Promise<unknown> {
   let response: Response;
   try {
     response = await fetcher(path, {
@@ -36,24 +29,37 @@ export async function loadReadModel(
     throw new ReadModelError("READ_UNAVAILABLE");
   }
 
-  if (!response.ok) {
-    throw new ReadModelError("READ_UNAVAILABLE");
-  }
-
-  let body: unknown;
+  if (!response.ok) throw new ReadModelError("READ_UNAVAILABLE");
   try {
-    body = await response.json();
+    return await response.json();
   } catch {
+    throw new ReadModelError("READ_INVALID");
+  }
+}
+
+export async function loadReadModel(
+  path: string,
+  fetcher: ReadFetcher = fetch,
+): Promise<unknown> {
+  if (!isReadPath(path)) {
     throw new ReadModelError("READ_INVALID");
   }
 
   if (path === "/metadata") {
+    const body = await fetchJson(path, fetcher);
     const parsed = metadataSchema.safeParse(body);
     if (!parsed.success) {
       throw new ReadModelError("READ_INVALID");
     }
     return parsed.data;
   }
+
+  const metadata = metadataSchema.safeParse(
+    await fetchJson("/metadata", fetcher),
+  );
+  if (!metadata.success) throw new ReadModelError("READ_INVALID");
+
+  const body = await fetchJson(path, fetcher);
 
   if (typeof body !== "object" || body === null) {
     throw new ReadModelError("READ_INVALID");
