@@ -10,8 +10,16 @@ const readiness = {
   requirements: [],
   wallets: null,
   actions: [
-    { id: "APPROVE_FXRP", role: "seller", description: "Approve FXRP custody." },
-    { id: "CREATE_RFQ", role: "seller", description: "Create the controlled RFQ." },
+    {
+      id: "APPROVE_FXRP",
+      role: "seller",
+      description: "Approve FXRP custody.",
+    },
+    {
+      id: "CREATE_RFQ",
+      role: "seller",
+      description: "Create the controlled RFQ.",
+    },
   ],
 };
 
@@ -19,7 +27,10 @@ const flatten = (node: unknown): unknown[] => {
   if (!node || typeof node !== "object") return [node];
   const element = node as { props?: { children?: unknown } };
   const children = element.props?.children;
-  return [node, ...(Array.isArray(children) ? children : [children]).flatMap(flatten)];
+  return [
+    node,
+    ...(Array.isArray(children) ? children : [children]).flatMap(flatten),
+  ];
 };
 
 describe("M5 readiness dashboard", () => {

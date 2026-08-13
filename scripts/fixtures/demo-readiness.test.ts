@@ -42,7 +42,9 @@ describe("M5 demo readiness", () => {
   });
 
   it("uses the deterministic seller, provider, FCC, and claim action order", () => {
-    expect(buildDemoReadiness(liveInput).actions.map((action) => action.id)).toEqual([
+    expect(
+      buildDemoReadiness(liveInput).actions.map((action) => action.id),
+    ).toEqual([
       "APPROVE_FXRP",
       "CREATE_RFQ",
       "APPROVE_USDT0_A",
@@ -60,18 +62,27 @@ describe("M5 demo readiness", () => {
   it("fails closed for invalid public wallets and missing requirements", () => {
     expect(
       buildDemoReadiness({ ...liveInput, providerA: ADDRESS.seller }),
-    ).toMatchObject({ state: "INVALID", reasons: ["SCENARIO_WALLETS_NOT_DISTINCT"] });
+    ).toMatchObject({
+      state: "INVALID",
+      reasons: ["SCENARIO_WALLETS_NOT_DISTINCT"],
+    });
     expect(
       buildDemoReadiness({
         ...liveInput,
         requirements: { ...requirements, FCC_EXT_PROXY_URL: false },
       }),
-    ).toMatchObject({ state: "BLOCKED", reasons: ["MISSING:FCC_EXT_PROXY_URL"] });
+    ).toMatchObject({
+      state: "BLOCKED",
+      reasons: ["MISSING:FCC_EXT_PROXY_URL"],
+    });
   });
 
   it("serializes only the public allowlist", () => {
     const secret = "never-serialize-this-private-key";
-    const readiness = buildDemoReadiness({ ...liveInput, ignoredSecret: secret });
+    const readiness = buildDemoReadiness({
+      ...liveInput,
+      ignoredSecret: secret,
+    });
 
     expect(JSON.stringify(readiness)).not.toContain(secret);
     expect(JSON.stringify(readiness)).not.toMatch(/private|secret/i);

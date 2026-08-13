@@ -3,8 +3,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const webSource = join(process.cwd(), "apps", "web", "src");
-const quoteForm = readFileSync(join(webSource, "liquidity", "quote-form.tsx"), "utf8");
-const tradeForm = readFileSync(join(webSource, "rfq", "trade-form.tsx"), "utf8");
+const quoteForm = readFileSync(
+  join(webSource, "liquidity", "quote-form.tsx"),
+  "utf8",
+);
+const tradeForm = readFileSync(
+  join(webSource, "rfq", "trade-form.tsx"),
+  "utf8",
+);
 
 describe("M4B write readiness presentation", () => {
   it("shows the pending deployment reason in the seller form", () => {

@@ -27,16 +27,22 @@ describe("M6 release readiness", () => {
       "HELPER_FUNDS_INSUFFICIENT",
       "CLAIM_TRANSFER_REVERTED_OR_TIMEOUT",
     ]);
-    expect(JSON.stringify(operationalDrills)).not.toMatch(/private|secret|token/i);
+    expect(JSON.stringify(operationalDrills)).not.toMatch(
+      /private|secret|token/i,
+    );
   });
 
   it("rejects unsafe scan inputs before invoking a scanner", () => {
     expect(runScanPreflight().status).toBe(1);
     expect(
-      runScanPreflight({ M6_CONTAINER_IMAGE: "registry.example/hushflow:latest" }).status,
+      runScanPreflight({
+        M6_CONTAINER_IMAGE: "registry.example/hushflow:latest",
+      }).status,
     ).toBe(1);
     expect(
-      runScanPreflight({ M6_CONTAINER_IMAGE: `registry.example/hushflow@sha256:${"A".repeat(64)}` }).status,
+      runScanPreflight({
+        M6_CONTAINER_IMAGE: `registry.example/hushflow@sha256:${"A".repeat(64)}`,
+      }).status,
     ).toBe(1);
   });
 });

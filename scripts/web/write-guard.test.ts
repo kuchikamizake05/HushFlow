@@ -13,12 +13,14 @@ describe("M4B write guard", () => {
   };
 
   it("fails closed for pending deployment, a wrong chain, missing code, or wallet", () => {
-    expect(
-      getWriteGuard({ ...ready, deployment: "pending" }),
-    ).toEqual({ enabled: false, reason: "DEPLOYMENT_PENDING" });
-    expect(
-      getWriteGuard({ ...ready, chainId: 1 }),
-    ).toEqual({ enabled: false, reason: "COSTON2_CHAIN_REQUIRED" });
+    expect(getWriteGuard({ ...ready, deployment: "pending" })).toEqual({
+      enabled: false,
+      reason: "DEPLOYMENT_PENDING",
+    });
+    expect(getWriteGuard({ ...ready, chainId: 1 })).toEqual({
+      enabled: false,
+      reason: "COSTON2_CHAIN_REQUIRED",
+    });
     expect(getWriteGuard({ ...ready, contractCode: "missing" })).toEqual({
       enabled: false,
       reason: "CONTRACT_CODE_REQUIRED",
@@ -30,9 +32,10 @@ describe("M4B write guard", () => {
   });
 
   it("requires a fresh direct RPC preflight and exact ready facts", () => {
-    expect(
-      getWriteGuard({ ...ready, rpc: "unavailable" }),
-    ).toEqual({ enabled: false, reason: "RPC_PREFLIGHT_REQUIRED" });
+    expect(getWriteGuard({ ...ready, rpc: "unavailable" })).toEqual({
+      enabled: false,
+      reason: "RPC_PREFLIGHT_REQUIRED",
+    });
     expect(getWriteGuard(ready)).toEqual({ enabled: true, state: "READY" });
   });
 });

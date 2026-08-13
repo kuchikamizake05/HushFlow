@@ -81,3 +81,10 @@ cannot sign or broadcast, and reports missing prerequisites by name only. The
 internal [readiness dashboard](/demo/readiness) renders the same public plan;
 it has no wallet connection or transaction control. Both are preparation for a
 later approved Coston2 run, not evidence of a live demo.
+
+## M6 release preparation (no external side effects)
+
+`pnpm release:drills` lists the controlled operational-failure matrix for a
+later live rehearsal. `pnpm preflight:container-scan` validates an explicit
+digest image and local Trivy availability but does not pull or scan anything.
+An actual vulnerability scan is a separately reviewed operator action.

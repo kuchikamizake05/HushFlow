@@ -32,8 +32,16 @@ export type DemoReadiness = Readonly<{
     name: DemoRequirementName;
     present: boolean;
   }>[];
-  wallets: Readonly<{ seller: Address; providerA: Address; providerB: Address }> | null;
-  actions: readonly Readonly<{ id: DemoActionId; role: string; description: string }>[];
+  wallets: Readonly<{
+    seller: Address;
+    providerA: Address;
+    providerB: Address;
+  }> | null;
+  actions: readonly Readonly<{
+    id: DemoActionId;
+    role: string;
+    description: string;
+  }>[];
 }>;
 
 export type DemoReadinessInput = Readonly<{
@@ -50,16 +58,56 @@ export type DemoReadinessInput = Readonly<{
 
 const actions: DemoReadiness["actions"] = [
   { id: "APPROVE_FXRP", role: "seller", description: "Approve FXRP custody." },
-  { id: "CREATE_RFQ", role: "seller", description: "Create the controlled RFQ." },
-  { id: "APPROVE_USDT0_A", role: "provider-a", description: "Approve USDT0 collateral." },
-  { id: "SUBMIT_QUOTE_A", role: "provider-a", description: "Submit an encrypted quote." },
-  { id: "APPROVE_USDT0_B", role: "provider-b", description: "Approve USDT0 collateral." },
-  { id: "SUBMIT_QUOTE_B", role: "provider-b", description: "Submit an encrypted quote." },
-  { id: "REQUEST_RESOLUTION", role: "requester", description: "Request FCC resolution." },
-  { id: "SUBMIT_RESULT", role: "requester", description: "Relay the FCC result." },
-  { id: "CLAIM_SELLER", role: "seller", description: "Claim the seller entitlement." },
-  { id: "CLAIM_PROVIDER_A", role: "provider-a", description: "Claim provider A entitlement." },
-  { id: "CLAIM_PROVIDER_B", role: "provider-b", description: "Claim provider B entitlement." },
+  {
+    id: "CREATE_RFQ",
+    role: "seller",
+    description: "Create the controlled RFQ.",
+  },
+  {
+    id: "APPROVE_USDT0_A",
+    role: "provider-a",
+    description: "Approve USDT0 collateral.",
+  },
+  {
+    id: "SUBMIT_QUOTE_A",
+    role: "provider-a",
+    description: "Submit an encrypted quote.",
+  },
+  {
+    id: "APPROVE_USDT0_B",
+    role: "provider-b",
+    description: "Approve USDT0 collateral.",
+  },
+  {
+    id: "SUBMIT_QUOTE_B",
+    role: "provider-b",
+    description: "Submit an encrypted quote.",
+  },
+  {
+    id: "REQUEST_RESOLUTION",
+    role: "requester",
+    description: "Request FCC resolution.",
+  },
+  {
+    id: "SUBMIT_RESULT",
+    role: "requester",
+    description: "Relay the FCC result.",
+  },
+  {
+    id: "CLAIM_SELLER",
+    role: "seller",
+    description: "Claim the seller entitlement.",
+  },
+  {
+    id: "CLAIM_PROVIDER_A",
+    role: "provider-a",
+    description: "Claim provider A entitlement.",
+  },
+  {
+    id: "CLAIM_PROVIDER_B",
+    role: "provider-b",
+    description: "Claim provider B entitlement.",
+  },
 ];
 
 const publicRequirements = (input: DemoReadinessInput) =>
@@ -92,7 +140,9 @@ const blocked = (
   actions,
 });
 
-export const buildDemoReadiness = (input: DemoReadinessInput): DemoReadiness => {
+export const buildDemoReadiness = (
+  input: DemoReadinessInput,
+): DemoReadiness => {
   const requirements = publicRequirements(input);
   let seller: Address;
   let providerA: Address;
@@ -136,7 +186,11 @@ export const buildDemoReadiness = (input: DemoReadinessInput): DemoReadiness => 
   providerA = getAddress(input.providerA!);
   providerB = getAddress(input.providerB!);
 
-  if (new Set([seller, providerA, providerB].map((wallet) => wallet.toLowerCase())).size !== 3) {
+  if (
+    new Set(
+      [seller, providerA, providerB].map((wallet) => wallet.toLowerCase()),
+    ).size !== 3
+  ) {
     return invalid(["SCENARIO_WALLETS_NOT_DISTINCT"], requirements);
   }
 
