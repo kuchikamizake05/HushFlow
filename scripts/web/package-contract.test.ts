@@ -28,4 +28,17 @@ describe("M4B web package contract", () => {
       default: "./dist/read-api.js",
     });
   });
+
+  it("keeps browser-bundled local imports extensionless", () => {
+    const browserSources = [
+      "apps/web/src/adapters/m4a.ts",
+      "apps/web/src/adapters/fixture.ts",
+      "apps/web/src/shell/data-status-banner.tsx",
+    ];
+
+    for (const sourcePath of browserSources) {
+      const source = readFileSync(sourcePath, "utf8");
+      expect(source).not.toMatch(/from\s+["']\.\.?\/[^"']+\.js["']/);
+    }
+  });
 });
