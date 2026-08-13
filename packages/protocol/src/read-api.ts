@@ -1,7 +1,11 @@
 import { getAddress } from "viem";
 import { z } from "zod";
 
-import { COSTON2_CHAIN_ID, rfqStatuses } from "./constants.js";
+import {
+  COSTON2_CHAIN_ID,
+  MAX_CIPHERTEXT_BYTES,
+  rfqStatuses,
+} from "./constants.js";
 import { deploymentBlockingReasons } from "./deployment.js";
 
 const decimal = z.string().regex(/^(0|[1-9][0-9]*)$/);
@@ -12,8 +16,33 @@ const address = z
   .transform((value) => getAddress(value));
 const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
 const hex = z.string().regex(/^0x(?:[0-9a-fA-F]{2})+$/);
+const ciphertext = hex.refine(
+  (value) => (value.length - 2) / 2 <= MAX_CIPHERTEXT_BYTES,
+  "CIPHERTEXT_TOO_LARGE",
+);
 const timestamp = z.iso.datetime({ offset: true });
 const base = { schemaVersion: z.literal(1) };
+
+export const dataProvenanceDtoSchema = z.strictObject({
+  mode: z.enum(["fixture", "live"]),
+  sourceId: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/),
+});
+
+export const readApiErrorCodes = [
+  "REQUEST_INVALID",
+  "INVALID_CURSOR",
+  "DATABASE_UNAVAILABLE",
+  "INTERNAL_ERROR",
+] as const;
+
+export const readApiErrorDtoSchema = z.strictObject({
+  ...base,
+  error: z.enum(readApiErrorCodes),
+});
 
 export const deploymentStatusDtoSchema = z.discriminatedUnion("status", [
   z.strictObject({
@@ -75,7 +104,7 @@ export const activityDtoSchema = z.strictObject({
 const providerDtoSchema = z.strictObject({
   position: z.number().int().nonnegative().safe(),
   provider: address,
-  quoteCiphertext: hex,
+  quoteCiphertext: ciphertext,
   submittedAtBlock: positiveDecimal,
   transactionHash: hash,
 });
@@ -83,7 +112,7 @@ const providerDtoSchema = z.strictObject({
 export const rfqDetailDtoSchema = z.strictObject({
   ...base,
   summary: rfqSummaryDtoSchema,
-  sellerCiphertext: hex,
+  sellerCiphertext: ciphertext,
   providers: z.array(providerDtoSchema),
   activity: z.array(activityDtoSchema),
 });
@@ -116,13 +145,19 @@ export const indexerHealthDtoSchema = z.strictObject({
   lagBlocks: decimal,
   checkedAt: timestamp,
   detailCode: z
-    .enum(["RPC_UNAVAILABLE", "INDEXER_LAGGING", "DATABASE_UNAVAILABLE"])
+    .enum([
+      "RPC_UNAVAILABLE",
+      "INDEXER_LAGGING",
+      "DATABASE_UNAVAILABLE",
+      "REORG_REPLAY_REQUIRED",
+      "EVENT_INVALID",
+    ])
     .optional(),
 });
 
 const proofProviderSchema = z.strictObject({
   provider: address,
-  ciphertext: hex,
+  ciphertext,
 });
 
 const tradeProofOutcomeSchema = z.strictObject({
@@ -144,7 +179,7 @@ const emptyProofOutcomeSchema = z.strictObject({
 export const rfqProofDtoSchema = z.strictObject({
   ...base,
   rfqId: positiveDecimal,
-  sellerCiphertext: hex,
+  sellerCiphertext: ciphertext,
   providerCiphertexts: z.array(proofProviderSchema),
   actionId: hash.nullable(),
   outcome: z
@@ -157,7 +192,99 @@ export const portfolioDtoSchema = z.strictObject({
   account: address,
   rfqs: z.array(rfqSummaryDtoSchema),
   claims: z.array(claimableDtoSchema),
+  nextCursor: z.string().min(1).nullable(),
 });
+
+export const portfolioQueryDtoSchema = z.strictObject({
+  ...base,
+  account: address,
+  limit: z.number().int().min(1).max(100),
+  cursor: z.string().min(1).max(512).optional(),
+});
+
+const decodedTradeResultSchema = z.strictObject({
+  ...base,
+  chainId: decimal,
+  contractAddress: address,
+  rfqId: positiveDecimal,
+  resultType: z.literal("TRADE"),
+  winningProvider: address,
+  winningQuote: positiveDecimal,
+  resultExpiry: positiveDecimal,
+  resultNonce: hash,
+});
+
+const decodedEmptyResultSchema = z.strictObject({
+  ...base,
+  chainId: decimal,
+  contractAddress: address,
+  rfqId: positiveDecimal,
+  resultType: z.enum(["NO_VALID_QUOTE", "INVALID_RFQ"]),
+  winningProvider: z.null(),
+  winningQuote: z.null(),
+  resultExpiry: positiveDecimal,
+  resultNonce: hash,
+});
+
+const proofCenterPartialSchema = z.strictObject({
+  schemaVersion: z.literal(2),
+  evidenceStatus: z.literal("PARTIAL"),
+  rfqId: positiveDecimal,
+  provenance: dataProvenanceDtoSchema,
+  reason: z.enum([
+    "FIXTURE_DATA",
+    "DEPLOYMENT_PENDING",
+    "SIGNED_RESULT_UNAVAILABLE",
+    "TRANSACTION_UNAVAILABLE",
+    "EVIDENCE_INVALID",
+  ]),
+});
+
+const proofCenterVerifiedSchema = z
+  .strictObject({
+    schemaVersion: z.literal(2),
+    evidenceStatus: z.literal("VERIFIED"),
+    rfqId: positiveDecimal,
+    provenance: dataProvenanceDtoSchema.extend({ mode: z.literal("live") }),
+    chainId: z.literal(COSTON2_CHAIN_ID),
+    contractAddress: address,
+    resultData: hex,
+    signature: z.string().regex(/^0x[0-9a-fA-F]{130}$/),
+    actionId: hash,
+    submissionTag: z.string().min(1).max(128),
+    actionStatus: z.literal(1),
+    decodedResult: z.union([
+      decodedTradeResultSchema,
+      decodedEmptyResultSchema,
+    ]),
+    configuredTeeSigner: address,
+    recoveredTeeSigner: address,
+    signatureVerified: z.literal(true),
+    payloadHash: hash,
+    signedMessageHash: hash,
+    sourceTransactionHash: hash,
+    sourceBlockNumber: positiveDecimal,
+    sourceBlockHash: hash,
+  })
+  .superRefine((value, context) => {
+    if (value.decodedResult.chainId !== String(value.chainId)) {
+      context.addIssue({ code: "custom", message: "PROOF_CHAIN_MISMATCH" });
+    }
+    if (value.decodedResult.contractAddress !== value.contractAddress) {
+      context.addIssue({ code: "custom", message: "PROOF_CONTRACT_MISMATCH" });
+    }
+    if (value.decodedResult.rfqId !== value.rfqId) {
+      context.addIssue({ code: "custom", message: "PROOF_RFQ_MISMATCH" });
+    }
+    if (value.recoveredTeeSigner !== value.configuredTeeSigner) {
+      context.addIssue({ code: "custom", message: "PROOF_SIGNER_MISMATCH" });
+    }
+  });
+
+export const rfqProofCenterDtoV2Schema = z.union([
+  proofCenterPartialSchema,
+  proofCenterVerifiedSchema,
+]);
 
 export const protocolStatsDtoSchema = z.strictObject({
   ...base,

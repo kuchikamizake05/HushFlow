@@ -8,6 +8,7 @@ import {
 import { z } from "zod";
 
 import {
+  MAX_CIPHERTEXT_BYTES,
   MAX_PROVIDERS,
   payloadKinds,
   resultTypes,
@@ -89,6 +90,11 @@ const nonEmptyBytesSchema = z
   .regex(/^0x(?:[0-9a-fA-F]{2})+$/)
   .transform((value) => value as Hex);
 
+const ciphertextSchema = nonEmptyBytesSchema.refine(
+  (value) => (value.length - 2) / 2 <= MAX_CIPHERTEXT_BYTES,
+  "CIPHERTEXT_TOO_LARGE",
+);
+
 const baseSchema = {
   schemaVersion: z.literal(1),
   chainId: uint256Schema,
@@ -133,10 +139,10 @@ const resolutionInstructionV1Schema = z
   .strictObject({
     ...baseSchema,
     seller: addressSchema,
-    sellerCiphertext: nonEmptyBytesSchema,
+    sellerCiphertext: ciphertextSchema,
     quoteCap: uint256Schema,
     providers: z.array(addressSchema),
-    quoteCiphertexts: z.array(nonEmptyBytesSchema),
+    quoteCiphertexts: z.array(ciphertextSchema),
     resolutionDeadline: uint256Schema,
   })
   .superRefine((value, context) => {
