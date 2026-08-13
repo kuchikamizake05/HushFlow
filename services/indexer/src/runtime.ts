@@ -26,12 +26,12 @@ export async function createMigratedPool(databaseUrl: string) {
       adapter(client),
       await loadMigrations(getMigrationDirectory()),
     );
+    client.release();
     return pool;
   } catch (error) {
+    client.release();
     await pool.end();
     throw error;
-  } finally {
-    client.release();
   }
 }
 

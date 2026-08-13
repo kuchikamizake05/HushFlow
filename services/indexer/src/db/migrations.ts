@@ -54,6 +54,10 @@ export async function applyMigrations(
 ): Promise<void> {
   await client.query("BEGIN");
   try {
+    // Worker and API can start simultaneously against an empty or upgraded DB.
+    // A transaction-scoped lock makes schema discovery and application atomic
+    // across those independent processes.
+    await client.query("SELECT pg_advisory_xact_lock(1213545569)");
     await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         version TEXT PRIMARY KEY,
