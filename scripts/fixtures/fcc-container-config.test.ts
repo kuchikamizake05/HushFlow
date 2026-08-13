@@ -25,8 +25,7 @@ describe("M1 FCC container kit", () => {
   it("accepts a complete immutable image override", () => {
     const result = runPreflight({
       FCC_TEE_NODE_IMAGE: `registry.example/tee-node@sha256:${"a".repeat(64)}`,
-      FCC_TEE_NODE_PIN_SOURCE:
-        "https://example.invalid/official-pin-record",
+      FCC_TEE_NODE_PIN_SOURCE: "https://example.invalid/official-pin-record",
     });
 
     expect(result.status).toBe(0);
@@ -67,9 +66,7 @@ describe("M1 FCC container kit", () => {
       ]);
 
     expect(dockerfile).toContain("v0.0.24");
-    expect(dockerfile).toContain(
-      "adc67a29eb7162f6f1b5dabcbca320009480695e",
-    );
+    expect(dockerfile).toContain("adc67a29eb7162f6f1b5dabcbca320009480695e");
     expect(dockerfile).toContain(
       "https://github.com/flare-foundation/tee-node.git",
     );
