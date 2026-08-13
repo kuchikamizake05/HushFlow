@@ -69,3 +69,120 @@ a {
   color: #94a3b8;
   font-size: 0.875rem;
 }
+
+main {
+  margin: 0 auto;
+  max-width: 78rem;
+  padding: clamp(2rem, 6vw, 6rem) clamp(1rem, 4vw, 4rem);
+}
+.hero {
+  min-height: 54vh;
+  padding-block: clamp(2rem, 8vw, 7rem);
+}
+.eyebrow {
+  color: #60a5fa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+h1,
+h2 {
+  letter-spacing: -0.04em;
+  max-width: 15ch;
+}
+h1 {
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.94;
+  margin-block: 0.75rem 1.5rem;
+}
+h2 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1;
+}
+.hero > p:not(.eyebrow),
+.landing-section > p {
+  color: #cbd5e1;
+  font-size: 1.125rem;
+  line-height: 1.65;
+  max-width: 58ch;
+}
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.button {
+  border: 1px solid #64748b;
+  color: #e2e8f0;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+}
+.button--primary {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.convergence {
+  align-items: center;
+  border: 1px solid #334155;
+  color: #bfdbfe;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-top: 3rem;
+  max-width: 50rem;
+  padding: 1.25rem;
+}
+.convergence i {
+  background: #2563eb;
+  flex: 1;
+  height: 1px;
+}
+.landing-section {
+  border-top: 1px solid #334155;
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+.lifecycle {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+}
+.lifecycle li {
+  border: 1px solid #334155;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+.lifecycle span {
+  color: #60a5fa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.route-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.route-grid h2 {
+  grid-column: 1 / -1;
+}
+.route-grid a {
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  display: grid;
+  gap: 0.5rem;
+  min-height: 8rem;
+  padding: 1rem;
+  text-decoration: none;
+}
+.route-grid span {
+  color: #94a3b8;
+}
+@media (max-width: 600px) {
+  .lifecycle,
+  .route-grid {
+    grid-template-columns: 1fr;
+  }
+}
