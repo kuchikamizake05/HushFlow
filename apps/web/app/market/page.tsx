@@ -1,12 +1,11 @@
+import { MarketList } from "../../src/market/market-list";
+import { fixtureMarket } from "../../src/market/presentation";
 import { RfqRouteShell } from "../../src/rfq/route-shell";
 
 export default function MarketPage() {
   return (
     <RfqRouteShell eyebrow="MARKET">
-      <p>
-        Public RFQ discovery will appear here when verified M4A read data is
-        available.
-      </p>
+      <MarketList source={fixtureMarket} />
     </RfqRouteShell>
   );
 }

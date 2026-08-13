@@ -267,3 +267,32 @@ h2 {
   color: #cbd5e1;
   margin: 0.35rem 0 0;
 }
+
+.data-panel {
+  border: 1px solid #334155;
+  margin-top: 2rem;
+  max-width: 52rem;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+.data-panel h2 {
+  margin-top: 0.25rem;
+}
+.data-panel p {
+  color: #cbd5e1;
+}
+.data-panel ul {
+  list-style: none;
+  margin: 1.5rem 0;
+  padding: 0;
+}
+.data-panel li {
+  border-top: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.875rem 0;
+}
+.data-panel li strong {
+  color: #60a5fa;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+}
