@@ -1,7 +1,12 @@
+import { RfqRouteShell } from "../../src/rfq/route-shell";
+
 export default function ProofPage() {
   return (
-    <main>
-      <h1>Proof</h1>
-    </main>
+    <RfqRouteShell eyebrow="PROOF CENTER" status="SETTLED">
+      <p>
+        Proof Center will show partial or verified evidence. Fixture records are
+        always labelled partial.
+      </p>
+    </RfqRouteShell>
   );
 }

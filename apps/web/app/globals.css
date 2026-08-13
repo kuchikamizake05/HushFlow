@@ -186,3 +186,28 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.route-page {
+  min-height: 50vh;
+  padding-block: 2rem;
+}
+.route-description {
+  color: #cbd5e1;
+  font-size: 1.125rem;
+  max-width: 54ch;
+}
+.route-page button {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  cursor: not-allowed;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+}
+.preflight-note {
+  border-left: 2px solid #3b82f6;
+  color: #bfdbfe;
+  margin-top: 2rem;
+  max-width: 60ch;
+  padding-left: 0.75rem;
+}

@@ -1,3 +1,5 @@
+import { RfqRouteShell } from "../../../src/rfq/route-shell";
+
 export default async function RfqPage({
   params,
 }: {
@@ -5,8 +7,11 @@ export default async function RfqPage({
 }) {
   const { id } = await params;
   return (
-    <main>
-      <h1>RFQ {id}</h1>
-    </main>
+    <RfqRouteShell eyebrow={`RFQ #${id}`}>
+      <p>
+        Detail evidence is unavailable until a validated read model is
+        connected.
+      </p>
+    </RfqRouteShell>
   );
 }
