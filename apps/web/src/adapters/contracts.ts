@@ -1,63 +1,13 @@
 import { z } from "zod";
+import {
+  dataProvenanceDtoSchema,
+  deploymentStatusDtoSchema,
+  indexerHealthDtoSchema,
+} from "@hushflow/protocol/runtime/read-api";
 
-const timestamp = z.iso.datetime({ offset: true });
-const decimal = z.string().regex(/^(0|[1-9][0-9]*)$/);
-const hash = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
-const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
-
-// Mirrors the frozen M4A read DTO. Kept local because the current protocol
-// package export points at source files that Turbopack cannot bundle yet.
-export const dataProvenanceSchema = z.strictObject({
-  mode: z.enum(["fixture", "live"]),
-  sourceId: z
-    .string()
-    .min(1)
-    .max(128)
-    .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/),
-});
-export const deploymentStatusSchema = z.discriminatedUnion("status", [
-  z.strictObject({
-    schemaVersion: z.literal(1),
-    network: z.literal("coston2"),
-    chainId: z.literal(114),
-    status: z.literal("pending"),
-    blockingReason: z.enum([
-      "FCC_ORGANIZER_ACCESS",
-      "TEE_NODE_PIN",
-      "DEPLOYMENT_APPROVAL",
-      "LIVE_EVIDENCE",
-    ]),
-    updatedAt: timestamp,
-  }),
-  z.strictObject({
-    schemaVersion: z.literal(1),
-    network: z.literal("coston2"),
-    chainId: z.literal(114),
-    status: z.literal("live"),
-    hushFlowRfq: address,
-    deploymentTransactionHash: hash,
-    deploymentBlock: z.string().regex(/^[1-9][0-9]*$/),
-    updatedAt: timestamp,
-  }),
-]);
-export const indexerHealthSchema = z.strictObject({
-  schemaVersion: z.literal(1),
-  status: z.enum(["healthy", "degraded", "unavailable"]),
-  chainId: z.literal(114),
-  latestIndexedBlock: decimal,
-  latestObservedBlock: decimal,
-  lagBlocks: decimal,
-  checkedAt: timestamp,
-  detailCode: z
-    .enum([
-      "RPC_UNAVAILABLE",
-      "INDEXER_LAGGING",
-      "DATABASE_UNAVAILABLE",
-      "REORG_REPLAY_REQUIRED",
-      "EVENT_INVALID",
-    ])
-    .optional(),
-});
+export const dataProvenanceSchema = dataProvenanceDtoSchema;
+export const deploymentStatusSchema = deploymentStatusDtoSchema;
+export const indexerHealthSchema = indexerHealthDtoSchema;
 
 export type DataProvenance = z.infer<typeof dataProvenanceSchema>;
 export type DeploymentStatus = z.infer<typeof deploymentStatusSchema>;

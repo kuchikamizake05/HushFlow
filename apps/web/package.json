@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "pnpm --filter @hushflow/protocol build",
     "build": "next build",
     "lint": "eslint src app --ext .ts,.tsx",
+    "pretypecheck": "pnpm --filter @hushflow/protocol build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests"

@@ -9,12 +9,14 @@
     "pnpm": "11.15.1"
   },
   "scripts": {
+    "pretest": "pnpm --filter @hushflow/protocol build",
     "bootstrap:tools": "bash scripts/setup/bootstrap-tools.sh",
     "build": "node scripts/setup/run-turbo.mjs build",
     "format:check": "prettier --check . --ignore-path .prettierignore",
     "lint": "eslint eslint.config.mjs vitest.config.ts scripts/**/*.ts && node scripts/setup/run-turbo.mjs lint",
     "typecheck": "tsc -p tsconfig.scripts.json --noEmit && node scripts/setup/run-turbo.mjs typecheck",
     "test": "vitest run --passWithNoTests && node scripts/setup/run-turbo.mjs test",
+    "pretest:coverage": "pnpm --filter @hushflow/protocol build",
     "test:coverage": "vitest run --coverage --passWithNoTests && node scripts/setup/run-turbo.mjs test:coverage",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build",
     "preflight:toolchain": "bash -lc 'source scripts/setup/use-local-tools.sh && scripts/setup/check-toolchain.sh'",
