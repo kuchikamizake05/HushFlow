@@ -31,6 +31,7 @@ Date: 2026-08-12
 | Solidity verifier and RFQ tests | 14 passed |
 | Solidity coverage | 89.50% lines, 85.61% statements |
 | Solidity formatting | passed |
+| FCC source/image container configuration | 8 passed; both Compose templates rendered without pull/build/run |
 | Workspace format, lint, typecheck, test coverage, build | passed |
 | Dependency audit at high severity | passed; one moderate advisory remains |
 | Secret scan of tracked source/configuration | no matches for private-key or ngrok-token patterns |
