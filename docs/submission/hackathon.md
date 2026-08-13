@@ -59,6 +59,8 @@ Detailed records: [M1](../verification/m1-local-fcc-slice.md),
 
 The local product and integration evidence are complete. A real FCC Coston2
 transaction is intentionally **not** claimed until organizer read-only indexer
-access, an exact tee-node pin, a safe temporary proxy/tunnel, and explicit
-deployment approval are available. The live kit is prepared to stop rather than
-substitute guessed infrastructure.
+access, live registry/signer confirmation, a safe temporary proxy/tunnel, and
+explicit deployment approval are available. The live kit uses the official
+Flare `tee-node v0.0.24` source at reviewed commit `adc67a29...`, or an official
+image only when its immutable digest and publication source are supplied. This
+local preparation is not presented as FCC attestation or Coston2 deployment.

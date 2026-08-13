@@ -24,8 +24,8 @@ See [architecture overview](docs/architecture/overview.md),
 ## Live status
 
 No Coston2 transaction or FCC deployment is claimed yet. Live validation still
-needs organizer-issued read-only indexer credentials, an approved digest-pinned
-tee-node image/configuration, a temporary Coston2-only proxy route, and a
+needs organizer-issued read-only indexer credentials, confirmation of the live
+FCC registry/signer configuration, a temporary Coston2-only proxy route, and a
 separate explicit approval before any testnet broadcast.
 
 ## Canonical development environment
@@ -54,13 +54,21 @@ The following commands only validate local configuration or simulate deployment:
     set +a
     pnpm preflight:coston2
     pnpm preflight:fcc-container
+    docker compose -f infra/fcc/docker-compose.template.yml config --quiet
     pnpm preflight:fcc
     pnpm plan:coston2
     forge script contracts/script/DeployHushFlow.s.sol:DeployHushFlow --rpc-url "$COSTON2_RPC_URL"
 
-`infra/fcc/docker-compose.template.yml` is intentionally blocked until
-`FCC_TEE_NODE_IMAGE` contains the organizer-approved image **and immutable
-digest**. It shares the tee-node network namespace with the HushFlow extension,
-so the signing/decrypt port stays private; it exposes no public port itself.
+The default template builds the official Flare `tee-node` source pinned to
+`v0.0.24` and commit `adc67a29eb7162f6f1b5dabcbca320009480695e`. If Flare or
+the organizer supplies a prebuilt image, use
+`infra/fcc/docker-compose.image.template.yml`; the preflight accepts it only
+with an immutable `@sha256` digest and a recorded publication source. Both
+modes share the tee-node network namespace with the HushFlow extension, so the
+signing/decrypt port stays private and no service publishes a port.
+
+`docker compose ... config` and the preflight only validate configuration. They
+do not pull, build, run, register, tunnel, or broadcast. A later explicit
+`docker compose build` may access the network to fetch the reviewed source.
 Use [the M1 runbook](docs/runbooks/coston2-m1-live.md) for the controlled
 three-wallet sequence and evidence ledger.

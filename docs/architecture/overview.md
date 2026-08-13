@@ -45,7 +45,10 @@ Flare Confidential Compute extension ---------------- signed result / explicit p
 
 ## Safety posture
 
-- FCC container startup refuses an unpinned tee-node image.
+- FCC source mode fixes the official Flare `tee-node` at `v0.0.24` and commit
+  `adc67a29eb7162f6f1b5dabcbca320009480695e`; image override mode refuses any
+  reference without an immutable digest and publication source.
+- Neither container mode publishes the tee-node signing/decrypt port.
 - The deployment script is simulation-only and contains no broadcast call.
 - Fixture data is never presented as live; no client write CTA is enabled until
   deployment/RPC preflight succeeds.

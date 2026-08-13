@@ -17,6 +17,10 @@ Date: 2026-08-12
 - FCC-backed RFQ custody slice: fixed FXRP lot, fixed USDT0 provider collateral, maximum 20 providers, ciphertext-size ceiling, FCC instruction forwarding, action/result replay protection, terminal outcomes, timeout, and pull-based claims.
 - The signer can be supplied at construction or initialized exactly once by the deployer after extension registration. RFQ creation remains blocked until it is set; it cannot be replaced afterward.
 - Exact-transfer accounting rejects unsupported fee-on-transfer token behavior during deposits.
+- The two-process live kit defaults to the official Flare `tee-node` source at
+  tag `v0.0.24`, verifies commit
+  `adc67a29eb7162f6f1b5dabcbca320009480695e`, and retains a fail-closed
+  digest-image override. Neither mode publishes the signing/decrypt port.
 
 ## Local verification
 
@@ -54,7 +58,9 @@ This document does **not** claim that M1 is live or complete. The following acce
 
 - Read-only C-chain indexer credentials in the extension proxy configuration.
 - A Coston2-only public proxy URL while the guided demo is running.
-- Two-process container packaging with the exact organizer-supported tee-node pin and reproducible base image. The HushFlow extension process and public wire surface are implemented locally, but a locally invented tee-node pin would not be valid deployment evidence.
+- Organizer confirmation that the reviewed official source pin and resulting
+  runtime are accepted for the live Coston2 FCC environment. Local preflight,
+  tests, and Compose rendering are preparation evidence, not live attestation.
 - Coston2 deployment, extension registration, and evidence that the one-time configured signer equals the registered FCC machine signer. Current public registry interface evidence is insufficient to prove that binding in-contract, so this must be demonstrated in deployment evidence before activation.
 - Encrypted payload submission with the live extension public key and signed-result relay.
 - Real Coston2 transaction hashes for trade, no-valid-quote, invalid-RFQ, replay/stale rejection, timeout, and claims.

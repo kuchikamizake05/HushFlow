@@ -24,14 +24,39 @@ melakukan claim. Losing quote tidak dimasukkan ke evidence publik.
 2. Isi kredensial FCC indexer read-only dan tiga alamat wallet publik.
 3. Isi registry FCC dan TEE signer hanya dari jawaban resmi organizer/Flare.
 4. Pastikan wallet memiliki C2FLR untuk gas serta token test FXRP/USDT0 yang cukup.
-5. Jalankan pemeriksaan Coston2 dan FCC:
+5. Pilih salah satu pin mode tee-node:
+
+   - biarkan `FCC_TEE_NODE_IMAGE` dan `FCC_TEE_NODE_PIN_SOURCE` kosong untuk
+     source resmi Flare `v0.0.24` pada commit
+     `adc67a29eb7162f6f1b5dabcbca320009480695e`; atau
+   - isi keduanya untuk image resmi dengan referensi immutable `@sha256` dan
+     sumber publikasi digest.
+
+6. Jalankan pemeriksaan Coston2 dan FCC:
 
    ```bash
    pnpm preflight:coston2
+   pnpm preflight:fcc-container
    pnpm preflight:fcc
    ```
 
-6. Jalankan `pnpm plan:coston2`. Output wajib bertanda `DRY_RUN_ONLY`, hanya
+7. Render template yang sesuai tanpa pull, build, atau run:
+
+   ```bash
+   # Default official-source mode
+   docker compose -f infra/fcc/docker-compose.template.yml config --quiet
+
+   # Immutable-image override mode
+   FCC_TEE_NODE_IMAGE="$FCC_TEE_NODE_IMAGE" \
+     docker compose -f infra/fcc/docker-compose.image.template.yml config --quiet
+   ```
+
+   Perintah `config` dan preflight tidak menarik image/source, membangun image,
+   menjalankan container, mendaftarkan extension, membuka tunnel, atau
+   mengirim transaksi. `docker compose build` adalah aksi operator terpisah
+   yang dapat mengakses network untuk mengambil source resmi.
+
+8. Jalankan `pnpm plan:coston2`. Output wajib bertanda `DRY_RUN_ONLY`, hanya
    berisi data publik, dan urutan aksi harus berjumlah sebelas.
 
 Jika satu gate gagal, hentikan proses. Jangan mengganti address dengan tebakan.
