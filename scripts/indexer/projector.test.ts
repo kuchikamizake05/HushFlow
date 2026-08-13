@@ -44,7 +44,7 @@ describe("deterministic event projector", () => {
         eventName: "RfqCreated",
         args: {
           rfqId: "1",
-          seller: "0x1111111111111111111111111111111111111111",
+          seller: "0x3333333333333333333333333333333333333333",
           lotAmount: "1",
           quoteCap: "1",
           quoteDeadline: "2",
@@ -81,7 +81,7 @@ describe("deterministic event projector", () => {
       rfqs: [
         {
           rfqId: "1",
-          seller: "0x1111111111111111111111111111111111111111",
+          seller: "0x3333333333333333333333333333333333333333",
           lotAmount: "1000000",
           quoteCap: "2500000",
           quoteDeadline: "1700000100",
@@ -126,8 +126,8 @@ describe("deterministic event projector", () => {
       claims: [
         {
           rfqId: "1",
-          account: "0x1111111111111111111111111111111111111111",
-          fxrpAmount: "1000000",
+          account: "0x3333333333333333333333333333333333333333",
+          fxrpAmount: "0",
           usdt0Amount: "2400000",
           claimed: true,
         },

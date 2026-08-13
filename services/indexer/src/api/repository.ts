@@ -345,18 +345,16 @@ export class ReadRepository {
         claimed: hasClaim ? Boolean(row.claimed) : false,
       });
     }
-    const portfolio = portfolioDtoSchema.parse({
+    const last = rfqs.at(-1);
+    const nextCursor =
+      hasMore && last ? encodeRfqCursor({ rfqId: last.rfqId }) : null;
+    return portfolioDtoSchema.parse({
       schemaVersion: 1,
       account,
       rfqs,
       claims,
+      nextCursor,
     });
-    const last = rfqs.at(-1);
-    return {
-      ...portfolio,
-      nextCursor:
-        hasMore && last ? encodeRfqCursor({ rfqId: last.rfqId }) : null,
-    };
   }
 
   async getStats() {
