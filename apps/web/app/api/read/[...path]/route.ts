@@ -23,7 +23,8 @@ export async function GET(
       headers: { "cache-control": "no-store" },
     });
   } catch (error) {
-    const code = error instanceof ReadModelError ? error.code : "READ_UNAVAILABLE";
+    const code =
+      error instanceof ReadModelError ? error.code : "READ_UNAVAILABLE";
     return NextResponse.json(
       { code },
       { status: code === "READ_INVALID" ? 400 : 503 },

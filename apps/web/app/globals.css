@@ -5,6 +5,67 @@
   font-family: Georgia, "Times New Roman", serif;
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
-a { color: inherit; }
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+a {
+  color: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+.site-header,
+.primary-navigation,
+.site-footer {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+.site-header,
+.site-footer {
+  border-color: #334155;
+  border-style: solid;
+  padding: 1rem clamp(1rem, 4vw, 4rem);
+}
+.site-header {
+  border-width: 0 0 1px;
+  flex-wrap: wrap;
+}
+.primary-navigation {
+  flex: 1;
+  flex-wrap: wrap;
+}
+.primary-navigation a,
+.wordmark {
+  color: #e2e8f0;
+  text-decoration: none;
+}
+.primary-navigation a:focus-visible,
+.wordmark:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+.wallet-state,
+.data-status {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+.data-status {
+  border-bottom: 1px solid #334155;
+  margin: 0;
+  padding: 0.625rem clamp(1rem, 4vw, 4rem);
+}
+.data-status--fixture {
+  background: #172554;
+  color: #dbeafe;
+}
+.site-footer {
+  border-width: 1px 0 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
