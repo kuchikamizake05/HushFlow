@@ -1,4 +1,4 @@
-import type { DataProvenance } from "../adapters/contracts";
+import type { DataProvenance } from "../adapters/contracts.js";
 
 export function DataStatusBanner({
   provenance,

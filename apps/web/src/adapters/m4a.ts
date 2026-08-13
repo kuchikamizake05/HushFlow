@@ -2,7 +2,7 @@ import {
   dataProvenanceSchema,
   isReadPath,
   parseCoreReadModel,
-} from "./contracts";
+} from "./contracts.js";
 
 export type ReadErrorCode = "READ_INVALID" | "READ_UNAVAILABLE";
 

@@ -14,6 +14,7 @@
     "build": "node scripts/setup/run-turbo.mjs build",
     "format:check": "prettier --check . --ignore-path .prettierignore",
     "lint": "eslint eslint.config.mjs vitest.config.ts scripts/**/*.ts && node scripts/setup/run-turbo.mjs lint",
+    "pretypecheck": "pnpm --filter @hushflow/protocol build",
     "typecheck": "tsc -p tsconfig.scripts.json --noEmit && node scripts/setup/run-turbo.mjs typecheck",
     "test": "vitest run --passWithNoTests && node scripts/setup/run-turbo.mjs test",
     "pretest:coverage": "pnpm --filter @hushflow/protocol build",
@@ -22,6 +23,7 @@
     "preflight:toolchain": "bash -lc 'source scripts/setup/use-local-tools.sh && scripts/setup/check-toolchain.sh'",
     "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
     "preflight:fcc": "bash scripts/setup/check-fcc-access.sh",
+    "preflight:fcc-container": "bash scripts/setup/check-fcc-container-config.sh",
     "plan:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-live.ts",
     "generate:protocol-abi": "tsx scripts/generate-protocol-abi.ts",
     "e2e:web": "pnpm --filter @hushflow/protocol build && playwright test"

@@ -1,4 +1,4 @@
-import type { DataProvenance } from "./contracts";
+import type { DataProvenance } from "./contracts.js";
 
 const provenance: DataProvenance = {
   mode: "fixture",
