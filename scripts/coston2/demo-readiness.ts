@@ -144,9 +144,6 @@ export const buildDemoReadiness = (
   input: DemoReadinessInput,
 ): DemoReadiness => {
   const requirements = publicRequirements(input);
-  let seller: Address;
-  let providerA: Address;
-  let providerB: Address;
 
   const suppliedWallets = [input.seller, input.providerA, input.providerB];
   const hasInvalidWallet = suppliedWallets.some((wallet) => {
@@ -182,9 +179,9 @@ export const buildDemoReadiness = (
     return blocked(reasons, requirements);
   }
 
-  seller = getAddress(input.seller!);
-  providerA = getAddress(input.providerA!);
-  providerB = getAddress(input.providerB!);
+  const seller: Address = getAddress(input.seller!);
+  const providerA: Address = getAddress(input.providerA!);
+  const providerB: Address = getAddress(input.providerB!);
 
   if (
     new Set(
