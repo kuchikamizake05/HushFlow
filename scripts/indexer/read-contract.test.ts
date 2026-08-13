@@ -12,6 +12,7 @@ import {
   rfqProofDtoSchema,
 } from "../../packages/protocol/src/read-api.js";
 import { MAX_CIPHERTEXT_BYTES } from "../../packages/protocol/src/constants.js";
+import { parseResolutionInstructionV1 } from "../../packages/protocol/src/fcc.js";
 import {
   CursorError,
   decodeRfqCursor,
@@ -212,6 +213,35 @@ describe("M4A shared read contracts", () => {
       rfqDetailDtoSchema.parse({
         ...detail,
         providers: [{ ...detail.providers[0], quoteCiphertext: rejected }],
+      }),
+    ).toThrow();
+
+    const instruction = {
+      schemaVersion: 1 as const,
+      chainId: 114n,
+      contractAddress: "0x9999999999999999999999999999999999999999",
+      rfqId: 1n,
+      seller: account,
+      sellerCiphertext: accepted,
+      quoteCap: 2_500_000n,
+      providers: [provider],
+      quoteCiphertexts: [accepted],
+      resolutionDeadline: 1_700_001_900n,
+    };
+
+    expect(parseResolutionInstructionV1(instruction).sellerCiphertext).toBe(
+      accepted,
+    );
+    expect(() =>
+      parseResolutionInstructionV1({
+        ...instruction,
+        sellerCiphertext: rejected,
+      }),
+    ).toThrow();
+    expect(() =>
+      parseResolutionInstructionV1({
+        ...instruction,
+        quoteCiphertexts: [rejected],
       }),
     ).toThrow();
   });
