@@ -23,10 +23,12 @@
     "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
     "preflight:fcc": "bash scripts/setup/check-fcc-access.sh",
     "plan:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/coston2/prepare-live.ts",
-    "generate:protocol-abi": "tsx scripts/generate-protocol-abi.ts"
+    "generate:protocol-abi": "tsx scripts/generate-protocol-abi.ts",
+    "e2e:web": "pnpm --filter @hushflow/protocol build && playwright test"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "5.6.1",
+    "@playwright/test": "1.57.0",
     "@types/node": "24.13.3",
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "10.7.0",

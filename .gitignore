@@ -15,6 +15,8 @@ node_modules/
 out/
 result/
 results/
+playwright-report/
+test-results/
 
 # FCC-generated local configuration and secrets
 services/fcc-extension/config/extension.env
