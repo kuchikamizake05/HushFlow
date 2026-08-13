@@ -1,7 +1,14 @@
+import { RfqRouteShell } from "../../src/rfq/route-shell";
+import { TradeForm } from "../../src/rfq/trade-form";
+
 export default function TradePage() {
   return (
-    <main>
-      <h1>Trade</h1>
-    </main>
+    <RfqRouteShell eyebrow="PRIVATE RFQ">
+      <p>
+        Enter the seller minimum only here. It is never sent to read APIs, URLs,
+        or persistent browser storage.
+      </p>
+      <TradeForm />
+    </RfqRouteShell>
   );
 }
