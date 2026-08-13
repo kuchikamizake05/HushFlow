@@ -176,6 +176,19 @@ describe("M4A read repository", () => {
     expect(JSON.stringify(market)).not.toContain("0xabcd");
   });
 
+  it("reports fixture Proof Center evidence as partial rather than inventing a signature", async () => {
+    await expect(repository.getRfqProofCenterV2("1")).resolves.toEqual({
+      schemaVersion: 2,
+      evidenceStatus: "PARTIAL",
+      rfqId: "1",
+      provenance: {
+        mode: "fixture",
+        sourceId: "read-repository-test-v1",
+      },
+      reason: "FIXTURE_DATA",
+    });
+  });
+
   it("derives seller and provider portfolio claim state from canonical events", async () => {
     const seller = await repository.getPortfolio(SELLER);
     const provider = await repository.getPortfolio(PROVIDER);

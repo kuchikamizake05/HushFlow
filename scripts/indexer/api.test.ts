@@ -49,6 +49,13 @@ function repository(): ReadApiRepository {
       actionId: HASH,
       outcome: null,
     })),
+    getRfqProofCenterV2: vi.fn(async () => ({
+      schemaVersion: 2 as const,
+      evidenceStatus: "PARTIAL" as const,
+      rfqId: "1",
+      provenance: { mode: "fixture" as const, sourceId: "local-demo-v1" },
+      reason: "FIXTURE_DATA" as const,
+    })),
     getPortfolio: vi.fn(async (account: string) => ({
       schemaVersion: 1 as const,
       account,
@@ -94,6 +101,7 @@ describe("M4A read-only HTTP API", () => {
     ["/rfqs", 1],
     ["/rfqs/1", "1"],
     ["/rfqs/1/proof", "0x1234"],
+    ["/v2/rfqs/1/proof", "PARTIAL"],
     [`/wallets/${SELLER}/portfolio`, SELLER],
     ["/stats", "1"],
     ["/metadata", "local-demo-v1"],
@@ -105,6 +113,16 @@ describe("M4A read-only HTTP API", () => {
     expect(JSON.stringify(body)).toContain(String(marker));
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("routes the versioned Proof Center endpoint to its dedicated repository read", async () => {
+    const repo = repository();
+
+    const response = await invoke("/v2/rfqs/1/proof", repo);
+
+    expect(response.status).toBe(200);
+    expect(repo.getRfqProofCenterV2).toHaveBeenCalledWith("1");
+    expect(repo.getRfqProof).not.toHaveBeenCalled();
   });
 
   it("passes bounded validated market filters to the repository", async () => {
