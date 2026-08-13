@@ -215,4 +215,3 @@ This scope is complete when:
 - Compose renders without pulling or running containers; and
 - documentation accurately states that live FCC and Coston2 acceptance remain
   pending credentials and explicit deployment approval.
-
