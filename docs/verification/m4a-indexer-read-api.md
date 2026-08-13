@@ -21,8 +21,8 @@ Date: 2026-08-13
 
 | Gate | Result |
 | --- | --- |
-| TypeScript tests | 238 passed, 0 failed |
-| TypeScript coverage | 91.65% lines, 90.29% statements, 94.97% functions, 80.83% branches |
+| TypeScript tests | 239 passed, 0 failed |
+| TypeScript coverage | 92.01% lines, 90.63% statements, 95.39% functions, 81.29% branches |
 | Solidity regression tests | 52 passed, 0 failed, 0 skipped |
 | Indexer lint, typecheck, build, and targeted formatting | passed |
 | Protocol typecheck and build | passed |
@@ -48,6 +48,7 @@ The final two-process container smoke also reproduced a cold-start migration rac
 - `07487c4` through `9776ac7`: shared read-contract, Proof Center v2, ciphertext-cap, and canonical-fixture RED/GREEN checkpoints.
 - `8b23179` and `5952ff2`: M4A adaptation to the frozen DTO and corrected seller entitlement.
 - `897db0e` and `11d6d89`: migration-race RED/GREEN checkpoints for simultaneous API/worker schema startup.
+- `ec2f4db` and `7aba0f9`: provenance-contract RED/GREEN checkpoints; `/metadata` now serves the frozen `{ mode, sourceId }` DTO.
 
 ## Not yet demonstrated
 
