@@ -107,6 +107,13 @@ const repository = new ReadRepository(pool, {
 });
 
 describe("M4A read repository", () => {
+  it("returns provenance through the frozen shared DTO shape", async () => {
+    await expect(repository.getMetadata()).resolves.toEqual({
+      mode: "fixture",
+      sourceId: "read-repository-test-v1",
+    });
+  });
+
   it("lists RFQs with stable filters and opaque pagination", async () => {
     const page = await repository.listRfqs({
       limit: 1,
