@@ -39,4 +39,20 @@ test.describe("M4B safe fixture journey", () => {
       await page.evaluate(() => Object.values(sessionStorage)),
     ).not.toContain(privateAmount);
   });
+
+  test("renders the read-only controlled demo readiness plan", async ({
+    page,
+  }) => {
+    await page.goto("/demo/readiness");
+
+    await expect(
+      page.getByRole("heading", { name: "CONTROLLED TESTNET ACTIVITY" }),
+    ).toBeVisible();
+    await expect(page.getByText("FCC_ORGANIZER_ACCESS")).toBeVisible();
+    await expect(page.locator("body")).toContainText(
+      "No wallet, signing key, or transaction authority is available on this page.",
+    );
+    await expect(page.locator("button, input, form")).toHaveCount(0);
+    await expect(page.getByText("Connect wallet")).toHaveCount(0);
+  });
 });

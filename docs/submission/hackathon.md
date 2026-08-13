@@ -26,6 +26,9 @@ the private RFQ inputs.
 4. Show **Market**, **Portfolio**, and **Proof Center**: read views retain data
    provenance; fixture proof is `PARTIAL`, never fabricated as a signature.
 5. Explain the planned Coston2 three-wallet controlled test and evidence ledger.
+6. Optionally open `/demo/readiness` to show the public prerequisite state and
+   deterministic controlled action plan. This route has no wallet or broadcast
+   capability and is not presented as Coston2 execution evidence.
 
 ## Technical highlights
 
@@ -47,6 +50,7 @@ the private RFQ inputs.
 | M3 interfaces | 135 Vitest + 52 Forge tests; frozen ABI/events/crypto contracts. |
 | M4A indexer | 242 TypeScript tests and 92% line coverage. |
 | M4B web | 31 unit/component tests, 4 browser smoke tests, and 94.93% web line coverage. |
+| M5 readiness preparation | Sanitized three-wallet CLI plan and read-only dashboard; neither can sign or broadcast. |
 | Integrated candidate | 284/284 TypeScript tests, 52/52 Forge tests, 92.25% TypeScript line coverage, Forge ABI drift check, and all five production packages built with the pinned toolchain. |
 
 Detailed records: [M1](../verification/m1-local-fcc-slice.md),

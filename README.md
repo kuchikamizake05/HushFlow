@@ -72,3 +72,12 @@ do not pull, build, run, register, tunnel, or broadcast. A later explicit
 `docker compose build` may access the network to fetch the reviewed source.
 Use [the M1 runbook](docs/runbooks/coston2-m1-live.md) for the controlled
 three-wallet sequence and evidence ledger.
+
+## M5 demo readiness (no broadcast)
+
+`pnpm demo:plan` emits a sanitized, deterministic readiness plan for the
+controlled seller/provider A/provider B scenario. It accepts no private key,
+cannot sign or broadcast, and reports missing prerequisites by name only. The
+internal [readiness dashboard](/demo/readiness) renders the same public plan;
+it has no wallet connection or transaction control. Both are preparation for a
+later approved Coston2 run, not evidence of a live demo.
