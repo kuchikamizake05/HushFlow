@@ -11,5 +11,6 @@ describe("repository verification boundaries", () => {
 
     expect(gitignore.split(/\r?\n/)).toContain(".claude/");
     expect(prettierignore.split(/\r?\n/)).toContain(".claude/");
+    expect(prettierignore.split(/\r?\n/)).toContain("**/.next/");
   });
 });
