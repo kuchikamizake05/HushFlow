@@ -10,6 +10,7 @@ dist/
 docs/
 node_modules/
 out/
+test-results/
 pnpm-lock.yaml
 **/dist/
 **/generated/
