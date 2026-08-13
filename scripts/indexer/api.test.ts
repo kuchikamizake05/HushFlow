@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { coston2Deployment } from "../../packages/protocol/src/deployments/coston2.js";
 import { ReadRepositoryError } from "../../services/indexer/src/api/repository.js";
+import { CursorError } from "../../services/indexer/src/api/cursor.js";
 import {
   createReadApiHandler,
   type ReadApiRepository,
@@ -74,6 +75,11 @@ function repository(): ReadApiRepository {
       lagBlocks: "0",
       checkedAt: "2026-08-12T12:00:00.000Z",
     })),
+    getMetadata: vi.fn(async () => ({
+      schemaVersion: 1 as const,
+      dataMode: "fixture" as const,
+      sourceIdentity: "local-demo-v1",
+    })),
   };
 }
 
@@ -91,6 +97,7 @@ describe("M4A read-only HTTP API", () => {
     ["/rfqs/1/proof", "0x1234"],
     [`/wallets/${SELLER}/portfolio`, SELLER],
     ["/stats", "1"],
+    ["/metadata", "local-demo-v1"],
   ])("serves GET %s", async (path, marker) => {
     const response = await invoke(path);
     const body = (await response.json()) as Record<string, unknown>;
@@ -173,5 +180,25 @@ describe("M4A read-only HTTP API", () => {
 
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "DEPLOYMENT_NOT_LIVE" });
+  });
+
+  it("maps malformed opaque cursors to stable 400 error", async () => {
+    const repo = repository();
+    repo.listRfqs = vi.fn(async () => {
+      throw new CursorError();
+    });
+    const response = await invoke("/rfqs?cursor=not-canonical", repo);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "INVALID_CURSOR" });
+  });
+
+  it("maps database outages to coarse 503 error", async () => {
+    const repo = repository();
+    repo.getStats = vi.fn(async () => {
+      throw new ReadRepositoryError("DATABASE_UNAVAILABLE");
+    });
+    const response = await invoke("/stats", repo);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "DATABASE_UNAVAILABLE" });
   });
 });

@@ -37,9 +37,19 @@ describe("indexer SQL migrations", () => {
   it("loads ordered migrations with stable SHA-256 checksums", async () => {
     const migrations = await loadMigrations(migrationDirectory);
 
-    expect(migrations.map(({ version }) => version)).toEqual(["001"]);
+    expect(migrations.map(({ version }) => version)).toEqual(["001", "002"]);
     expect(migrations[0]?.checksum).toMatch(/^[0-9a-f]{64}$/);
     expect(migrations[0]?.sql).toContain("CREATE TABLE chain_logs");
+  });
+
+  it("adds provenance and a 4096-byte ciphertext cap without rewriting 001", async () => {
+    const migrations = await loadMigrations(migrationDirectory);
+    const hardening = migrations.find(({ version }) => version === "002")?.sql ?? "";
+    expect(hardening).toContain("data_mode");
+    expect(hardening).toContain("source_identity");
+    expect(hardening).toContain("4096");
+    expect(hardening).toContain("rfqs_seller_ciphertext_size_check");
+    expect(hardening).toContain("rfq_providers_quote_ciphertext_size_check");
   });
 
   it("defines evidence, derived, cursor, and health tables", async () => {

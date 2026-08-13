@@ -16,6 +16,8 @@ import {
 const CONTRACT = "0x9999999999999999999999999999999999999999";
 const config: IndexerConfig = {
   mode: "fixture",
+  fixturePath: "fixtures/local-events.json",
+  sourceIdentity: "local-demo-v1",
   databaseUrl: "postgresql://local-test",
   port: 8787,
   batchSize: 2,
@@ -61,10 +63,12 @@ class FakeStore implements WorkerStore {
     detailCode?: string;
   }> = [];
   readonly verifyCursor = vi.fn(async () => undefined);
+  readonly reconcileWindow = vi.fn(async () => ({
+    reorg: false as const,
+    ancestorBlock: null,
+  }));
 
-  async readCursor() {
-    return this.cursor;
-  }
+  readonly readCursor = vi.fn(async () => this.cursor);
 
   async ingestBatch(batch: IngestionBatch) {
     this.batches.push(batch);
@@ -104,9 +108,41 @@ describe("single indexer worker cycle", () => {
 
     const result = await runWorkerCycle(config, store, source);
 
-    expect(store.verifyCursor).toHaveBeenCalledWith(114, block(11));
+    expect(store.reconcileWindow).toHaveBeenCalledWith(114, [block(10), block(11)]);
+    expect(store.readCursor).toHaveBeenCalledTimes(2);
     expect(source.getBlocks).toHaveBeenLastCalledWith(12n, 13n);
     expect(result).toEqual({ fromBlock: "12", toBlock: "13", ingested: true });
+  });
+
+  it("reads reconciliation window in RPC chunks no larger than 1000 blocks", async () => {
+    const source = new FakeSource();
+    source.getHead.mockResolvedValueOnce(4_100n);
+    const store = new FakeStore();
+    store.cursor = { blockNumber: "4009", blockHash: hash(4009) };
+
+    await runWorkerCycle({ ...config, finalityWindow: 4_000 }, store, source);
+
+    expect(source.getBlocks.mock.calls.slice(0, 4)).toEqual([
+      [10n, 1009n],
+      [1010n, 2009n],
+      [2010n, 3009n],
+      [3010n, 4009n],
+    ]);
+    expect(store.reconcileWindow).toHaveBeenCalledOnce();
+  });
+
+  it("fails closed when reconciliation requires deep replay", async () => {
+    const source = new FakeSource();
+    const store = new FakeStore();
+    store.cursor = { blockNumber: "11", blockHash: hash(11) };
+    store.reconcileWindow.mockRejectedValueOnce(
+      new Error("INDEXER_REORG_REPLAY_REQUIRED"),
+    );
+
+    await expect(runWorkerCycle(config, store, source)).rejects.toThrow(
+      "INDEXER_REORG_REPLAY_REQUIRED",
+    );
+    expect(store.batches).toEqual([]);
   });
 
   it("does not ingest when already at chain head", async () => {

@@ -32,6 +32,28 @@ function requireEvent(
 }
 
 describe("deterministic event projector", () => {
+  it("rejects decoded ciphertext above 4096 bytes", () => {
+    expect(() =>
+      toProjectorEvent({
+        schemaVersion: 1,
+        chainId: 114,
+        contractAddress: "0x9999999999999999999999999999999999999999",
+        blockNumber: "1",
+        transactionHash: `0x${"1".repeat(64)}`,
+        logIndex: 0,
+        eventName: "RfqCreated",
+        args: {
+          rfqId: "1",
+          seller: "0x1111111111111111111111111111111111111111",
+          lotAmount: "1",
+          quoteCap: "1",
+          quoteDeadline: "2",
+          resolutionDeadline: "3",
+          sellerCiphertext: `0x${"aa".repeat(4097)}`,
+        },
+      }),
+    ).toThrowError("PROJECTOR_EVENT_INVALID");
+  });
   it("adapts only lifecycle events from strict M3 decoded records", async () => {
     const decoded = await events();
 

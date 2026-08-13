@@ -15,12 +15,16 @@ describe("parseIndexerConfig", () => {
       {
         INDEXER_MODE: "fixture",
         DATABASE_URL: databaseUrl,
+        INDEXER_FIXTURE_PATH: "fixtures/local-events.json",
+        INDEXER_SOURCE_IDENTITY: "local-demo-v1",
       },
       coston2Deployment,
     );
 
     expect(config).toEqual({
       mode: "fixture",
+      fixturePath: "fixtures/local-events.json",
+      sourceIdentity: "local-demo-v1",
       databaseUrl,
       port: 8787,
       batchSize: 250,
@@ -34,6 +38,8 @@ describe("parseIndexerConfig", () => {
       {
         INDEXER_MODE: "fixture",
         DATABASE_URL: databaseUrl,
+        INDEXER_FIXTURE_PATH: "fixtures/local-events.json",
+        INDEXER_SOURCE_IDENTITY: "local-demo-v1",
         INDEXER_API_PORT: "9090",
         INDEXER_BATCH_SIZE: "1000",
         INDEXER_FINALITY_WINDOW: "128",
@@ -60,6 +66,8 @@ describe("parseIndexerConfig", () => {
     const env = {
       INDEXER_MODE: "fixture",
       DATABASE_URL: databaseUrl,
+      INDEXER_FIXTURE_PATH: "fixtures/local-events.json",
+      INDEXER_SOURCE_IDENTITY: "local-demo-v1",
       [key]: value,
     };
 
@@ -75,10 +83,28 @@ describe("parseIndexerConfig", () => {
     }
   });
 
+  it.each([
+    { DATABASE_URL: databaseUrl },
+    { INDEXER_MODE: "fixture", DATABASE_URL: databaseUrl },
+    {
+      INDEXER_MODE: "fixture",
+      DATABASE_URL: databaseUrl,
+      INDEXER_FIXTURE_PATH: "fixtures/local-events.json",
+    },
+  ])("requires explicit mode, fixture path, and source identity", (env) => {
+    expect(() => parseIndexerConfig(env, coston2Deployment)).toThrowError(
+      "INDEXER_CONFIG_INVALID",
+    );
+  });
+
   it("fails closed when live mode receives a pending manifest", () => {
     expect(() =>
       parseIndexerConfig(
-        { INDEXER_MODE: "live", DATABASE_URL: databaseUrl },
+        {
+          INDEXER_MODE: "live",
+          DATABASE_URL: databaseUrl,
+          INDEXER_SOURCE_IDENTITY: "coston2-rpc",
+        },
         coston2Deployment,
       ),
     ).toThrowError("INDEXER_DEPLOYMENT_NOT_LIVE");
@@ -113,12 +139,17 @@ describe("parseIndexerConfig", () => {
     });
 
     const config = parseIndexerConfig(
-      { INDEXER_MODE: "live", DATABASE_URL: databaseUrl },
+      {
+        INDEXER_MODE: "live",
+        DATABASE_URL: databaseUrl,
+        INDEXER_SOURCE_IDENTITY: "coston2-rpc",
+      },
       live,
     );
 
     expect(config.mode).toBe("live");
     if (config.mode !== "live") throw new Error("EXPECTED_LIVE_CONFIG");
     expect(config.deployment).toBe(live);
+    expect(config.sourceIdentity).toBe("coston2-rpc");
   });
 });
