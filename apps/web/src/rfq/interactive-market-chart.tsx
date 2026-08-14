@@ -506,7 +506,7 @@ export function InteractiveMarketChart() {
       <div className="chart-footer-row">
         <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
           <span className="oracle-dot" />
-          <span>Flare FTSO V2 Anchor · 0.00% MEV Leakage</span>
+          <span>Flare FTSO V2 Anchor · Sealed ECIES Boundary</span>
         </span>
         <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-tertiary)" }}>
           {TIMEFRAME_CONFIGS[selectedTf]?.intervalText}

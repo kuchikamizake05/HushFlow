@@ -49,7 +49,7 @@ export function TradeMarketSidebar() {
             <FlareLogo width={14} height={14} />
             <span>RECENT SETTLEMENTS</span>
           </div>
-          <span className="sidebar-status-tag">COSTON2 LIVE</span>
+          <span className="sidebar-status-tag">COSTON2 SIMULATED (M4B)</span>
         </div>
 
         <div className="settlements-mini-list">

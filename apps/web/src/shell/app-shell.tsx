@@ -44,27 +44,7 @@ export function AppShell({
 
           {/* Right Action Buttons */}
           <div className="raycast-right-actions">
-            {isLanding ? (
-              <Link href="/trade" className="raycast-cta-btn" style={{ textDecoration: "none" }}>
-                <span>Launch App</span>
-                <span style={{ fontSize: "0.875rem" }}>→</span>
-              </Link>
-            ) : (
-              <>
-                <a
-                  href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="raycast-search-trigger"
-                  title="View Contract on Flare Coston2 Explorer"
-                  style={{ textDecoration: "none", cursor: "pointer" }}
-                >
-                  <FlareLogo width={15} height={15} />
-                  <span>Coston2</span>
-                </a>
-                <HeaderWalletButton />
-              </>
-            )}
+            <HeaderWalletButton />
           </div>
         </header>
       </div>

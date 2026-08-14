@@ -34,9 +34,9 @@ export function RfqRouteShell({
 
       <div className="preflight-footer-note" role="status">
         <span className="status-dot" style={{ background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
-        <span>
-          Coston2 Testnet Live (Chain ID 114) · Zero mempool leakage via client-side ECIES encryption.
-        </span>
+        <p className="privacy-pill">
+          Coston2 Testnet (Chain ID 114) · Explicit Fixture & Simulated TEE Demo Mode.
+        </p>
       </div>
     </div>
   );

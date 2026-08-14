@@ -28,7 +28,7 @@ export function MarketTelemetryBar() {
         <span className="telemetry-label">PRIVACY GUARANTEE</span>
         <span className="telemetry-val text-secure">
           <ShieldIcon width={13} height={13} style={{ display: "inline", verticalAlign: "-2px", marginRight: 4 }} />
-          0.00% Leakage
+          Sealed ECIES Boundary
         </span>
       </div>
 
