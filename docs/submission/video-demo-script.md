@@ -3,7 +3,7 @@
 **Project:** HushFlow (Confidential RFQ & Settlement Layer for XRPFi on Flare Network)  
 **Target Video Duration:** ~2:45 to 3:00 minutes  
 **Target Resolution:** 1080p (Full HD), Browser Fullscreen / 100% Zoom  
-**Live Web App URL:** `https://hushflow.vercel.app`  
+**Live Web App URL:** `https://hushflow.dev`  
 **Public Simulated FCC Proxy:** `https://fcc.hushflow.dev/info`  
 **Coston2 Contract Address:** `0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`  
 
@@ -13,11 +13,11 @@
 
 Prepare and open the following tabs in order:
 
-1. **Tab 1 (Landing Page):** `https://hushflow.vercel.app/`
-2. **Tab 2 (Trading Cockpit - Seller):** `https://hushflow.vercel.app/trade`
-3. **Tab 3 (Liquidity Provider - Maker):** `https://hushflow.vercel.app/liquidity`
-4. **Tab 4 (Portfolio & Settlements):** `https://hushflow.vercel.app/portfolio`
-5. **Tab 5 (Proof Center):** `https://hushflow.vercel.app/proof`
+1. **Tab 1 (Landing Page):** `https://hushflow.dev/`
+2. **Tab 2 (Trading Cockpit - Seller):** `https://hushflow.dev/trade`
+3. **Tab 3 (Liquidity Provider - Maker):** `https://hushflow.dev/liquidity`
+4. **Tab 4 (Portfolio & Settlements):** `https://hushflow.dev/portfolio`
+5. **Tab 5 (Proof Center):** `https://hushflow.dev/proof`
 6. **Tab 6 (Public Simulated FCC Endpoint):** `https://fcc.hushflow.dev/info`
 7. **Tab 7 (Coston2 Explorer):** `https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`
 
@@ -38,7 +38,7 @@ graph LR
 
 ### 🕒 SCENE 1: Landing Page & Problem Statement (0:00 – 0:35)
 
-* **Screen View:** Tab 1 (`https://hushflow.vercel.app/`)
+* **Screen View:** Tab 1 (`https://hushflow.dev/`)
 * **Mouse Actions:**
   1. *(0:00 - 0:15)* Hover over the Hero Header, badge *"Flare Confidential Compute · Coston2 Testnet Live"*, and tagline *"Confidential Execution Layer for XRPFi"*.
   2. *(0:15 - 0:30)* Click consecutively on the 4 tabs of the **Interactive Hero Demo Card** (*Step 1: Request $\rightarrow$ Step 2: Blind Bidding $\rightarrow$ Step 3: TEE Matching $\rightarrow$ Step 4: Settlement*).
@@ -57,7 +57,7 @@ graph LR
 
 ### 🕒 SCENE 2: Seller Side — Trading Cockpit & FTSO V2 (`/trade`) (0:35 – 1:15)
 
-* **Screen View:** Tab 2 (`https://hushflow.vercel.app/trade`)
+* **Screen View:** Tab 2 (`https://hushflow.dev/trade`)
 * **Mouse Actions:**
   1. *(0:35 - 0:45)* Move mouse over the **Interactive SVG Market Chart** (hover along the curve to trigger the crosshair tooltip `$2.4852` and click timeframe `24H` or `7D`).
   2. *(0:45 - 0:55)* Highlight the telemetry badge *"Flare FTSO V2 Anchor"* and the *"ECIES Sealed"* indicator.
@@ -77,7 +77,7 @@ graph LR
 
 ### 🕒 SCENE 3: Maker Side — Liquidity Provider (`/liquidity`) (1:15 – 1:55)
 
-* **Screen View:** Tab 3 (`https://hushflow.vercel.app/liquidity`)
+* **Screen View:** Tab 3 (`https://hushflow.dev/liquidity`)
 * **Mouse Actions:**
   1. *(1:15 - 1:25)* Highlight the **"ACTIVE RFQ TARGET"** card (`#RFQ-0042`, lot 1.0 FXRP, required collateral 5.0 USDT0).
   2. *(1:25 - 1:40)* In the **"Submit Sealed Quote"** form on the right, click the quick button `4.0 USDT0` and highlight *"Required Escrow Collateral 5.0 USDT0 (100% Refundable)"*.
@@ -94,7 +94,7 @@ graph LR
 
 ### 🕒 SCENE 4: Accounting & Settlements — Portfolio (`/portfolio`) (1:55 – 2:25)
 
-* **Screen View:** Tab 4 (`https://hushflow.vercel.app/portfolio`)
+* **Screen View:** Tab 4 (`https://hushflow.dev/portfolio`)
 * **Mouse Actions:**
   1. *(1:55 - 2:10)* Point out the 3 top balance summary cards: **Locked Collateral** (5.00 USDT0), **Claimable Proceeds** (4.00 USDT0), and **Settled Assets** (1.00 FXRP).
   2. *(2:10 - 2:25)* Scroll down to the position rows:
@@ -128,7 +128,7 @@ graph LR
 
 ### 🕒 SCENE 6: Engineering Rigor & Conclusion (2:50 – 3:00)
 
-* **Screen View:** Return to Tab 1 (`https://hushflow.vercel.app/`) or GitHub Repo.
+* **Screen View:** Return to Tab 1 (`https://hushflow.dev/`) or GitHub Repo.
 * **Mouse Actions:** Scroll briefly past the architecture diagram and security disclosures.
 
 > 🎙️ **Voiceover Script (English):**  

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://hushflow.vercel.app"><strong>Live Web Application</strong></a> ·
+  <a href="https://hushflow.dev"><strong>Live Web Application</strong></a> ·
   <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"><strong>Coston2 Contract</strong></a> ·
   <a href="https://fcc.hushflow.dev/info"><strong>Simulated FCC Endpoint</strong></a> ·
   <a href="docs/submission/hackathon.md"><strong>Submission Pack</strong></a> ·
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://hushflow.vercel.app"><img src="https://img.shields.io/badge/Web%20App-hushflow.vercel.app-00E599?style=flat-square&logo=vercel" alt="Live Demo on Vercel" /></a>
+  <a href="https://hushflow.dev"><img src="https://img.shields.io/badge/Web%20App-hushflow.dev-00E599?style=flat-square&logo=vercel" alt="Live App on hushflow.dev" /></a>
   <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"><img src="https://img.shields.io/badge/Coston2-Chain%20114%20(Deployed)-E84142?style=flat-square&logo=flare" alt="Flare Coston2" /></a>
   <img src="https://img.shields.io/badge/Settlement%20Drill-11%2F11%20Confirmed%20Txns-0F9D8A?style=flat-square" alt="11/11 Verified Coston2 Txns" />
   <img src="https://img.shields.io/badge/Flare%20FCC-SIMULATED__TEE%20Ready-8B5CF6?style=flat-square" alt="Flare FCC" />
@@ -31,7 +31,7 @@
 
 ## Evaluation Guide (Live Application)
 
-Evaluators can inspect the end-to-end confidential RFQ lifecycle directly on the live web deployment at **[hushflow.vercel.app](https://hushflow.vercel.app)**:
+Evaluators can inspect the end-to-end confidential RFQ lifecycle directly on the live web deployment at **[hushflow.dev](https://hushflow.dev)**:
 
 1. **Trading Cockpit (`/trade`):** Live FXRP/USDT0 order book, interactive depth chart, and Flare FTSO V2 reference price anchor.
 2. **Liquidity Provider Desk (`/liquidity`):** Active target RFQ inspection and sealed quote submission backed by refundable USDT0 escrow.
@@ -58,7 +58,7 @@ Public Request-for-Quote (RFQ) protocols on decentralized networks suffer from s
 
 | Component | Target / Address | Explorer / Endpoint Status |
 | :--- | :--- | :--- |
-| **Web Application** | `https://hushflow.vercel.app` | [Open Deployment](https://hushflow.vercel.app) (HTTP 200 OK) |
+| **Web Application** | `https://hushflow.dev` | [Open Deployment](https://hushflow.dev) (HTTP 200 OK) |
 | **HushFlowRfq Contract** | `0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab` | [Coston2 Explorer](https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab) (Bytecode Confirmed) |
 | **FXRP Token (FTestXRP)** | `0x0b6A3645c240605887a5532109323A3E12273dc7` | [Coston2 Explorer](https://coston2-explorer.flare.network/address/0x0b6A3645c240605887a5532109323A3E12273dc7) |
 | **USDT0 Collateral Token (USD₮0)** | `0xC1A5B41512496B80903D1f32d6dEa3a73212E71F` | [Coston2 Explorer](https://coston2-explorer.flare.network/address/0xC1A5B41512496B80903D1f32d6dEa3a73212E71F) |
