@@ -1,7 +1,16 @@
 import { pathToFileURL } from "node:url";
 
-import { createFccHttpServer, type FccHttpServer } from "./http-runtime.js";
-import { createResultNonce, createTeeDecryptEnvelope } from "./tee-crypto.js";
+import { Server } from "./base/server.js";
+import {
+  DEFAULT_EXTENSION_PORT,
+  DEFAULT_SIGN_PORT,
+  VERSION,
+} from "./app/config.js";
+import {
+  createDefaultDependencies,
+  register,
+  reportState,
+} from "./app/handlers.js";
 
 export interface RuntimeConfig {
   extensionPort: number;
@@ -14,22 +23,30 @@ export function readRuntimeConfig(
   return {
     extensionPort: parsePort(
       environment.EXTENSION_PORT,
-      7702,
+      DEFAULT_EXTENSION_PORT,
       "EXTENSION_PORT_INVALID",
     ),
-    signPort: parsePort(environment.SIGN_PORT, 7701, "SIGN_PORT_INVALID"),
+    signPort: parsePort(
+      environment.SIGN_PORT,
+      DEFAULT_SIGN_PORT,
+      "SIGN_PORT_INVALID",
+    ),
   };
 }
 
 export async function startRuntime(
   environment: Record<string, string | undefined> = process.env,
-): Promise<FccHttpServer> {
+): Promise<Server> {
   const config = readRuntimeConfig(environment);
-  const server = createFccHttpServer({
-    decryptEnvelope: createTeeDecryptEnvelope(config.signPort),
-    createResultNonce,
-  });
-  await server.listen(config.extensionPort, "0.0.0.0");
+  const deps = createDefaultDependencies(config.signPort);
+  const server = new Server(
+    config.extensionPort,
+    config.signPort,
+    VERSION,
+    (framework) => register(framework, deps),
+    reportState,
+  );
+  await server.listenAndServe();
   return server;
 }
 

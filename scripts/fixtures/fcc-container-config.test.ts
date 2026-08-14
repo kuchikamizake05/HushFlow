@@ -9,6 +9,7 @@ const runPreflight = (overrides: Record<string, string> = {}) =>
     encoding: "utf8",
     env: {
       PATH: process.env.PATH,
+      WSLENV: Object.keys(overrides).join(":"),
       ...overrides,
     },
   });

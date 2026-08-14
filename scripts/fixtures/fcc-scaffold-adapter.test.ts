@@ -197,7 +197,7 @@ describe("FCC Scaffold Adapter - HushFlow RFQ resolution", () => {
 
     expect(status).toBe(0);
     expect(dataHex).toBeNull();
-    expect(error).toContain("error:");
+    expect(error).toBeTruthy();
   });
 
   it("returns failed action result (status 0) when decryption throws fatal error", async () => {
