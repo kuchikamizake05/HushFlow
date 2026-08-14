@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.15.1",
+  "packageManager": "pnpm@10.5.2",
   "engines": {
-    "node": ">=24.18.0 <25",
-    "pnpm": "11.15.1"
+    "node": ">=20.0.0"
   },
   "scripts": {
+    "vercel-build": "turbo run build && node -e \"const fs = require('fs'); fs.cpSync('apps/web/.next', '.next', {recursive: true}); if (fs.existsSync('apps/web/public')) fs.cpSync('apps/web/public', 'public', {recursive: true});\"",
     "pretest": "pnpm --filter @hushflow/protocol build",
     "bootstrap:tools": "bash scripts/setup/bootstrap-tools.sh",
     "build": "node scripts/setup/run-turbo.mjs build",
@@ -38,6 +38,7 @@
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "10.7.0",
     "prettier": "3.9.6",
+    "next": "16.1.6",
     "tsx": "4.23.1",
     "turbo": "2.10.5",
     "typescript": "6.0.3",

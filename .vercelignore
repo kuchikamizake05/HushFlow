@@ -1,0 +1,14 @@
+.tools
+.turbo
+.next
+node_modules
+cache
+coverage
+dist
+out
+test-results
+playwright-report
+contracts/lib
+.claude
+.env*
+!.env.example

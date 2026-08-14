@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm --filter @hushflow/protocol build && pnpm --filter @hushflow/web build",
+  "outputDirectory": "apps/web/out"
+}

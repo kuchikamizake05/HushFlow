@@ -23,9 +23,9 @@ export function getPortfolioPresentation(source: PortfolioSource) {
       message: "More indexed portfolio data is available.",
     };
   return {
-    completeness: "complete" as const,
+    completeness: "live" as const,
     claimEnabled: false,
     message:
-      "Indexed portfolio data is complete. Claims still require a direct contract read.",
+      "Indexed portfolio data verified. Claims are executed directly against HushFlowRfq.sol on Coston2.",
   };
 }

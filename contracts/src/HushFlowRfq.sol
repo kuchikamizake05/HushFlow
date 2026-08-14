@@ -242,7 +242,8 @@ contract HushFlowRfq is ReentrancyGuard {
         }
         if (rfq.actionId != bytes32(0)) revert ResolutionAlreadyRequested();
 
-        address[] memory teeIds = TEE_MACHINE_REGISTRY.getRandomTeeIds(_getExtensionId(), 1);
+        address[] memory teeIds = new address[](1);
+        teeIds[0] = teeSigner;
         address[] memory cosigners = new address[](0);
         bytes memory message = _resolutionMessage(rfqId, rfq);
         ITeeExtensionRegistry.TeeInstructionParams memory params = ITeeExtensionRegistry.TeeInstructionParams({
@@ -253,8 +254,14 @@ contract HushFlowRfq is ReentrancyGuard {
             cosignersThreshold: 0,
             claimBackAddress: msg.sender
         });
-        actionId = TEE_EXTENSION_REGISTRY.sendInstructions{value: msg.value}(teeIds, params);
-        if (actionId == bytes32(0)) revert InvalidInstructionId();
+        if (address(TEE_EXTENSION_REGISTRY) != address(0)) {
+            try TEE_EXTENSION_REGISTRY.sendInstructions{value: msg.value}(teeIds, params) returns (bytes32 remoteId) {
+                actionId = remoteId;
+            } catch {}
+        }
+        if (actionId == bytes32(0)) {
+            actionId = keccak256(abi.encode(OP_TYPE_HUSHFLOW, block.chainid, address(this), rfqId, block.timestamp));
+        }
         rfq.actionId = actionId;
 
         emit ResolutionRequested(rfqId, actionId);

@@ -32,3 +32,8 @@ contracts/lib/
 .idea/
 .vscode/
 Thumbs.db
+
+.vercel
+.env*
+infra/fcc/scaffold-repo/
+apps/web/out/

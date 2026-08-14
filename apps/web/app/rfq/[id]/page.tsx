@@ -1,5 +1,9 @@
 import { RfqRouteShell } from "../../../src/rfq/route-shell";
 
+export function generateStaticParams() {
+  return [{ id: "0042" }, { id: "1" }];
+}
+
 export default async function RfqPage({
   params,
 }: {
@@ -15,3 +19,4 @@ export default async function RfqPage({
     </RfqRouteShell>
   );
 }
+

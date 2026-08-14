@@ -34,6 +34,7 @@ services:
       - CHAIN_ID=114
       - CHAIN_URL=https://coston2-api.flare.network/ext/C/rpc
       - PROXY_URL=http://ext-proxy:6663
+      - EXTENSION_ID=0x00000000000000000000000000000000000000000000000000000000000102d8
       - CONFIG_PORT=5501
       - SIGN_PORT=7701
       - EXTENSION_PORT=7702

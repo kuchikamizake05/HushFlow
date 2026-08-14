@@ -6,10 +6,15 @@ import { fixtureReadModel } from "../src/adapters/fixture";
 import type { DataProvenance } from "../src/adapters/contracts";
 import { ReadModelError, loadServerReadModel } from "../src/adapters/m4a";
 import { AppShell } from "../src/shell/app-shell";
+import { Web3Provider } from "../src/providers/web3-provider";
 
 export const metadata: Metadata = {
-  title: "HushFlow",
-  description: "Private FXRP execution with verifiable settlement.",
+  title: "HushFlow — Confidential RFQ & Dark Pool on Flare",
+  description:
+    "Institutional confidential RFQ and dark pool for FXRP & USDT0, powered by Flare Confidential Compute (FCC) and TEE hardware.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 async function resolveProvenance(): Promise<DataProvenance | null> {
@@ -30,8 +35,22 @@ export default async function RootLayout({
   const provenance = await resolveProvenance();
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
-        <AppShell provenance={provenance}>{children}</AppShell>
+        <Web3Provider>
+          <AppShell provenance={provenance}>{children}</AppShell>
+        </Web3Provider>
       </body>
     </html>
   );

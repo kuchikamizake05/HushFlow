@@ -1,0 +1,82 @@
+{
+  "contractAddress": "0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab",
+  "evidence": [
+    {
+      "step": 1,
+      "action": "APPROVE_FXRP",
+      "txHash": "0xca5e49546434b5b42ca4a8474a6538be030f8d1daff9be38ef63684166de0e3d",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xca5e49546434b5b42ca4a8474a6538be030f8d1daff9be38ef63684166de0e3d",
+      "details": "Seller approved 1 FXRP custody"
+    },
+    {
+      "step": 2,
+      "action": "CREATE_RFQ",
+      "txHash": "0xce351a60d64096fc823426175104a6abb46b8fb14e1ab18a91297ba015738fab",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xce351a60d64096fc823426175104a6abb46b8fb14e1ab18a91297ba015738fab",
+      "details": "Created RFQ #1 for 1 FXRP lot with 5 USDT0 quote cap and encrypted seller minimum"
+    },
+    {
+      "step": 3,
+      "action": "APPROVE_USDT0_A",
+      "txHash": "0xc75fb5149f7c6c9e0bc8a25e5de6062d76c12ed9f7f9fad5d65a828cf953dc3c",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xc75fb5149f7c6c9e0bc8a25e5de6062d76c12ed9f7f9fad5d65a828cf953dc3c",
+      "details": "Provider A approved 5 USDT0 collateral"
+    },
+    {
+      "step": 4,
+      "action": "SUBMIT_QUOTE_A",
+      "txHash": "0x3ce10ebfab1e447343e52ba2c19fa8d6173a10cb7563a26168a102a1a8b8c80f",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0x3ce10ebfab1e447343e52ba2c19fa8d6173a10cb7563a26168a102a1a8b8c80f",
+      "details": "Provider A submitted encrypted quote of 3 USDT0"
+    },
+    {
+      "step": 5,
+      "action": "APPROVE_USDT0_B",
+      "txHash": "0xeaa520db815ef0b7e7f21181af6c8d676c26a2187393a89e63d2f4d5b055f30d",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xeaa520db815ef0b7e7f21181af6c8d676c26a2187393a89e63d2f4d5b055f30d",
+      "details": "Provider B approved 5 USDT0 collateral"
+    },
+    {
+      "step": 6,
+      "action": "SUBMIT_QUOTE_B",
+      "txHash": "0xb6448e17d8706b7c1034aec7a5a3739144ae1a1072720a01e4441d7b762241bc",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xb6448e17d8706b7c1034aec7a5a3739144ae1a1072720a01e4441d7b762241bc",
+      "details": "Provider B submitted encrypted quote of 4 USDT0 (winner)"
+    },
+    {
+      "step": 7,
+      "action": "REQUEST_RESOLUTION",
+      "txHash": "0x0a2317c4d9bf28a3df529ef99447b46600f50d25264825e84922624426da5970",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0x0a2317c4d9bf28a3df529ef99447b46600f50d25264825e84922624426da5970",
+      "details": "Requested FCC resolution on-chain, actionId: 0xdc2245bc3bceee153de88f9a90008e3a63c1913a91b7723d08fccc3cac8d7c37"
+    },
+    {
+      "step": 8,
+      "action": "SUBMIT_RESULT",
+      "txHash": "0xcbdda0ae9448030632138a382556e4aae4198eb59c3b72df4fb3dc8e9f250ef2",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xcbdda0ae9448030632138a382556e4aae4198eb59c3b72df4fb3dc8e9f250ef2",
+      "details": "Relayed FCC verified result (Winner: Provider B, Quote: 4 USDT0)"
+    },
+    {
+      "step": 9,
+      "action": "CLAIM_SELLER",
+      "txHash": "0xc6dcf96550f5d3ac4bccee57ba5d5eea60a6f85968655748f79c6cc204537458",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xc6dcf96550f5d3ac4bccee57ba5d5eea60a6f85968655748f79c6cc204537458",
+      "details": "Seller claimed 4 USDT0 trade proceeds"
+    },
+    {
+      "step": 10,
+      "action": "CLAIM_PROVIDER_B",
+      "txHash": "0xfd72d6d4083500bb5a47acae0619da8fc75276c57ee1a59b1fe2aef1ded2e884",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xfd72d6d4083500bb5a47acae0619da8fc75276c57ee1a59b1fe2aef1ded2e884",
+      "details": "Provider B claimed 1 FXRP lot"
+    },
+    {
+      "step": 11,
+      "action": "CLAIM_PROVIDER_A",
+      "txHash": "0xc20885ec1b5e3effaaa92330523366f15b243e66111d1cea91927a7eba5a533e",
+      "explorerUrl": "https://coston2-explorer.flare.network/tx/0xc20885ec1b5e3effaaa92330523366f15b243e66111d1cea91927a7eba5a533e",
+      "details": "Provider A claimed full 5 USDT0 collateral refund"
+    }
+  ]
+}

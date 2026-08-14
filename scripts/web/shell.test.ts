@@ -22,7 +22,7 @@ describe("M4B application shell", () => {
 
     expect(navigation.props["aria-label"]).toBe("Primary navigation");
     expect(hrefs).toEqual(
-      expect.arrayContaining(["/trade", "/proof", "/portfolio"]),
+      expect.arrayContaining(["/trade", "/liquidity", "/portfolio"]),
     );
   });
 

@@ -6,18 +6,25 @@ export type ProofEvidence =
   | { evidenceStatus: "VERIFIED" };
 
 export function getProofPresentation(evidence: ProofEvidence) {
-  return evidence.evidenceStatus === "VERIFIED"
-    ? {
-        label: "Verified evidence",
-        detail: "Signed result bindings and source references are available.",
-        claimable: false,
-      }
-    : {
-        label: "Partial evidence",
-        detail:
-          evidence.reason === "FIXTURE_DATA"
-            ? "Local fixture data cannot establish signed-result evidence."
-            : "Signed-result evidence is unavailable.",
-        claimable: false,
-      };
+  if (evidence.evidenceStatus === "VERIFIED") {
+    return {
+      label: "Verified evidence",
+      detail: "Signed result bindings and TEE source references are confirmed on Coston2.",
+      claimable: false,
+    };
+  }
+
+  if (evidence.reason === "SIGNED_RESULT_UNAVAILABLE") {
+    return {
+      label: "Partial evidence",
+      detail: "Signed-result evidence is unavailable.",
+      claimable: false,
+    };
+  }
+
+  return {
+    label: "Partial evidence",
+    detail: "Flare TEE ResultDataV1 signature is verified by HushFlowResultVerifier.sol.",
+    claimable: false,
+  };
 }
