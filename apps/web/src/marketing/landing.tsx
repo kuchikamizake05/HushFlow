@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getAppTradeUrl } from "../lib/routes";
 import { InteractiveHeroDemo } from "./interactive-hero-demo";
 import { ArchitectureFlow } from "./architecture-flow";
 import { FaqAccordion } from "./faq-accordion";
@@ -101,10 +102,10 @@ export function LandingPage() {
         </p>
 
         <div className="hero-actions">
-          <Link className="action-btn action-btn-primary" href="/trade">
+          <a className="action-btn action-btn-primary" href={getAppTradeUrl("/trade")}>
             <span>Start Private RFQ</span>
             <span style={{ fontSize: "0.875rem" }}>→</span>
-          </Link>
+          </a>
 
           <Link className="action-btn action-btn-secondary" href="/proof">
             <span>Proof Center</span>
