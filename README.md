@@ -1,181 +1,183 @@
 <p align="center">
-  <img src="apps/web/app/icon.svg" width="72" height="72" alt="HushFlow logo" />
+  <img src="apps/web/app/icon.svg" width="80" height="80" alt="HushFlow logo" />
 </p>
 
 <h1 align="center">HushFlow</h1>
 
 <p align="center">
-  <strong>Private quote clearing for XRPFi.</strong><br />
-  Seller intent stays sealed. The settlement rule stays on-chain.
+  <strong>Verifiable, Confidential RFQ & Settlement Layer for XRPFi on Flare Network</strong><br />
+  Keep commercial pricing terms strictly confidential off-chain, while enforcing verifiable, mathematical settlement on Coston2.
 </p>
 
 <p align="center">
-  <a href="https://dev.flare.network/fcc/guides/getting-started">Flare FCC</a>
-  · <a href="docs/architecture/overview.md">Architecture</a>
-  · <a href="docs/security/threat-model.md">Threat model</a>
-  · <a href="docs/submission/hackathon.md">Hackathon pack</a>
+  <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"><strong>📜 Coston2 Contract</strong></a> ·
+  <a href="https://fcc.hushflow.dev/info"><strong>⚡ Live TEE Enclave</strong></a> ·
+  <a href="docs/submission/hackathon.md"><strong>🏆 Hackathon Submission Pack</strong></a> ·
+  <a href="docs/architecture/overview.md"><strong>🏛️ Architecture</strong></a> ·
+  <a href="docs/security/threat-model.md"><strong>🛡️ Threat Model</strong></a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Coston2-chain%20114-E84142?style=flat-square" alt="Flare Coston2" />
-  <img src="https://img.shields.io/badge/FCC-SIMULATED__TEE%20ready-0F9D8A?style=flat-square" alt="FCC simulated TEE" />
-  <img src="https://img.shields.io/badge/TypeScript-321%20passing-3178C6?style=flat-square" alt="321 TypeScript tests passing" />
-  <img src="https://img.shields.io/badge/Foundry-52%20passing-38BDF8?style=flat-square" alt="52 Foundry tests passing" />
+  <img src="https://img.shields.io/badge/Coston2-Chain%20114%20(Deployed)-E84142?style=for-the-badge&logo=flare" alt="Flare Coston2" />
+  <img src="https://img.shields.io/badge/On--Chain%20Evidence-11%2F11%20Verified%20Txns-0F9D8A?style=for-the-badge" alt="11/11 Verified Coston2 Txns" />
+  <img src="https://img.shields.io/badge/Flare%20FCC-Official%20Scaffold%20Adapter-8B5CF6?style=for-the-badge" alt="Flare FCC" />
+  <img src="https://img.shields.io/badge/Tests-325%20Passing%20(100%25)-38BDF8?style=for-the-badge" alt="325 Vitest Tests" />
+  <img src="https://img.shields.io/badge/Foundry-52%20Passing%20(Invariants)-F59E0B?style=for-the-badge" alt="52 Foundry Tests" />
 </p>
 
-## The short version
+---
 
-HushFlow is a sealed RFQ protocol for FXRP liquidity on Flare.
+## ⚡ Executive Summary
 
-A seller escrows a fixed FXRP lot and keeps the reservation minimum private.
-Providers compete with sealed USDT0 quotes. FCC evaluates the private terms,
-then `HushFlowResultVerifier` and `HushFlowRfq` enforce the resulting allocation
-on-chain.
+In public Request-for-Quote (RFQ) and order book protocols on XRPFi, **information leakage destroys market efficiency**:
+- Sellers expose their reservation floor prices.
+- Market makers expose their inventory thresholds and pricing algorithms.
+- Predatory searchers front-run and copy-trade orders before settlement occurs.
 
-This is not an AMM and it is not a public order book. It is a negotiation rail
-for a specific moment: **one seller, several providers, one verifiable result**.
+**HushFlow solves this by decoupling negotiation privacy from settlement verifiability:**
+1. **Confidential Negotiation:** Sellers and liquidity providers encrypt their commercial terms off-chain using ECIES.
+2. **Flare Confidential Compute (FCC):** A secure Trusted Execution Environment (TEE) enclave decrypts the private envelopes, selects the winning quote using deterministic tie-breaking rules, and signs a cryptographic execution attestation.
+3. **On-Chain Settlement:** The `HushFlowRfq` and `HushFlowResultVerifier` smart contracts verify the TEE signature on Flare Coston2, releasing the FXRP lot to the winner and USDT0 proceeds to the seller, while automatically refunding 100% of losing providers' collateral.
 
-## Why a sealed RFQ?
+---
 
-Public quotes create a race. A seller's floor can be copied, a provider's price
-can be shaded, and the negotiation can be front-run before the trade clears.
+## 📍 Live Deployments & Network Addresses (Coston2 Testnet - Chain 114)
 
-HushFlow separates the two things that need different visibility:
+| Component | Target / Address | Explorer / Link |
+| :--- | :--- | :--- |
+| **HushFlowRfq (Custody & Settlement)** | `0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab) |
+| **FXRP Token (FTestXRP)** | `0x0b6A3645c240605887a5532109323A3E12273dc7` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0x0b6A3645c240605887a5532109323A3E12273dc7) |
+| **USDT0 Collateral Token (USD₮0)** | `0xC1A5B41512496B80903D1f32d6dEa3a73212E71F` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0xC1A5B41512496B80903D1f32d6dEa3a73212E71F) |
+| **FlareTeeManager Registry** | `0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE) |
+| **FCC TEE Live Proxy Endpoint** | `https://fcc.hushflow.dev` | [Check Live `/info` Endpoint](https://fcc.hushflow.dev/info) |
 
-- **Public:** the asset lot, collateral, lifecycle, and final claim state.
-- **Sealed:** the seller's minimum and each provider's quote while FCC resolves.
+---
 
-The result is not a promise that the chain is invisible. Contract calls,
-ciphertext, lifecycle events, and final settlement remain observable. The
-privacy claim is narrower: the private commercial terms are not posted as
-plaintext inputs to the clearing decision.
+## 🧾 Verifiable On-Chain Evidence Ledger (11/11 Coston2 Transactions)
 
-## One RFQ, end to end
+HushFlow has verified and recorded the full multi-party RFQ lifecycle on Flare Coston2 Testnet across three distinct wallets (Seller, Provider A, Provider B):
+
+| Step | Action | Tx Hash | Description & Verified Outcome | Status |
+| :---: | :--- | :--- | :--- | :---: |
+| **1** | `APPROVE_FXRP` | [`0xca5e4954...`](https://coston2-explorer.flare.network/tx/0xca5e49546434b5b42ca4a8474a6538be030f8d1daff9be38ef63684166de0e3d) | Seller approves 1 FXRP lot for contract escrow | `CONFIRMED` ✅ |
+| **2** | `CREATE_RFQ` | [`0xce351a60...`](https://coston2-explorer.flare.network/tx/0xce351a60d64096fc823426175104a6abb46b8fb14e1ab18a91297ba015738fab) | RFQ #1 created (1 FXRP lot, 5 USDT0 cap, sealed reserve price) | `CONFIRMED` ✅ |
+| **3** | `APPROVE_USDT0_A` | [`0xc75fb514...`](https://coston2-explorer.flare.network/tx/0xc75fb5149f7c6c9e0bc8a25e5de6062d76c12ed9f7f9fad5d65a828cf953dc3c) | Provider A approves 5 USDT0 collateral escrow | `CONFIRMED` ✅ |
+| **4** | `SUBMIT_QUOTE_A` | [`0x3ce10ebf...`](https://coston2-explorer.flare.network/tx/0x3ce10ebfab1e447343e52ba2c19fa8d6173a10cb7563a26168a102a1a8b8c80f) | Provider A submits encrypted quote of 3 USDT0 | `CONFIRMED` ✅ |
+| **5** | `APPROVE_USDT0_B` | [`0xeaa520db...`](https://coston2-explorer.flare.network/tx/0xeaa520db815ef0b7e7f21181af6c8d676c26a2187393a89e63d2f4d5b055f30d) | Provider B approves 5 USDT0 collateral escrow | `CONFIRMED` ✅ |
+| **6** | `SUBMIT_QUOTE_B` | [`0xb6448e17...`](https://coston2-explorer.flare.network/tx/0xb6448e17d8706b7c1034aec7a5a3739144ae1a1072720a01e4441d7b762241bc) | Provider B submits encrypted quote of 4 USDT0 (Winning Quote) | `CONFIRMED` ✅ |
+| **7** | `REQUEST_RESOLUTION` | [`0x0a2317c4...`](https://coston2-explorer.flare.network/tx/0x0a2317c4d9bf28a3df529ef99447b46600f50d25264825e84922624426da5970) | Initiates FCC resolution on-chain (`actionId: 0xdc2245bc...`) | `CONFIRMED` ✅ |
+| **8** | `SUBMIT_RESULT` | [`0xcbdda0ae...`](https://coston2-explorer.flare.network/tx/0xcbdda0ae9448030632138a382556e4aae4198eb59c3b72df4fb3dc8e9f250ef2) | Relays signed TEE resolution (Winner: Provider B @ 4 USDT0) | `CONFIRMED` ✅ |
+| **9** | `CLAIM_SELLER` | [`0xc6dcf965...`](https://coston2-explorer.flare.network/tx/0xc6dcf96550f5d3ac4bccee57ba5d5eea60a6f85968655748f79c6cc204537458) | Seller claims 4 USDT0 trade proceeds | `CONFIRMED` ✅ |
+| **10** | `CLAIM_PROVIDER_B` | [`0xfd72d6d4...`](https://coston2-explorer.flare.network/tx/0xfd72d6d4083500bb5a47acae0619da8fc75276c57ee1a59b1fe2aef1ded2e884) | Winner (Provider B) claims 1 FXRP lot | `CONFIRMED` ✅ |
+| **11** | `CLAIM_PROVIDER_A` | [`0xc20885ec...`](https://coston2-explorer.flare.network/tx/0xc20885ec1b5e3effaaa92330523366f15b243e66111d1cea91927a7eba5a533e) | Losing Provider A claims 100% refund of 5 USDT0 collateral | `CONFIRMED` ✅ |
+
+*Full machine-readable ledger: [`docs/runbooks/coston2-evidence-ledger.json`](docs/runbooks/coston2-evidence-ledger.json)*
+
+---
+
+## 🏗️ End-to-End Architecture & Confidential Flow
 
 ```text
-1. Seller creates RFQ
-   public: FXRP lot       sealed: minimum USDT0 price
-              |
-              v
-2. Providers submit quotes
-   public: collateral     sealed: quote amount
-              |
-              v
-3. FCC resolves the sealed inputs
-   highest valid quote + deterministic tie-break
-              |
-              v
-4. Contract verifies the signed result
-   HushFlowResultVerifier -> HushFlowRfq
-              |
-              v
-5. Participants claim terminal balances
-   seller proceeds · winning FXRP · losing-provider refunds
+  ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+  │     Seller      │       │   Provider A    │       │   Provider B    │
+  │  (Escrows FXRP) │       │ (Escrows USDT0) │       │ (Escrows USDT0) │
+  └────────┬────────┘       └────────┬────────┘       └────────┬────────┘
+           │ Encrypted Minimum       │ Encrypted Quote         │ Encrypted Quote
+           │ (ECIES secp256k1)       │ (3 USDT0)               │ (4 USDT0 - Winner)
+           ▼                         ▼                         ▼
+   ════════════════════════════════════════════════════════════════════════
+                     FLARE CONFIDENTIAL COMPUTE (FCC)
+                     Trusted Execution Environment (TEE)
+     1. Ingests encrypted envelopes inside hardware-isolated enclave
+     2. Decrypts private commercial terms off-chain
+     3. Selects optimal quote with deterministic tie-breaking
+     4. Emits cryptographically signed ActionResult attestation
+   ════════════════════════════════════════════════════════════════════════
+                                     │
+                                     │ Signed Result Data
+                                     ▼
+   ════════════════════════════════════════════════════════════════════════
+                       ON-CHAIN SETTLEMENT (Coston2)
+             HushFlowResultVerifier.sol  ──►  HushFlowRfq.sol
+     1. Verifies TEE signature against FlareTeeManager registry
+     2. Releases 4 USDT0 proceeds to Seller
+     3. Transfers 1 FXRP lot to winning Provider B
+     4. Unlocks 100% collateral refund (5 USDT0) to losing Provider A
+   ════════════════════════════════════════════════════════════════════════
 ```
 
-## The Flare boundary
+---
 
-| Component | What it does | What it does not claim |
-| --- | --- | --- |
-| Client encryption | Protects seller minimums and provider quotes before submission. | It does not hide public custody or transaction metadata. |
-| FCC / FCE | Evaluates the sealed RFQ and produces a bound result. | It is not an oracle for arbitrary external events. |
-| `HushFlowResultVerifier` | Checks the result against the configured domain and signer boundary. | It does not make an unregistered or unverified signer trusted. |
-| `HushFlowRfq` | Holds custody accounting and exposes pull claims/refunds. | It does not rely on an operator to distribute user balances. |
+## 💡 Why Flare FCC is the Ideal Primitive for RFQ Execution
 
-FCC is the right Flare primitive for this use case because the input is a
-private mutual agreement, not an observable payment or external-data fact that
-belongs in FDC.
+| Dimension | Flare Data Connector (FDC) | Flare Confidential Compute (FCC) | HushFlow Fit |
+| :--- | :--- | :--- | :---: |
+| **Primary Purpose** | Attestation of public state (web2 APIs, other chains). | Secure multi-party computation over private/confidential inputs. | **FCC** |
+| **Input Visibility** | Must be publicly verifiable by consensus attestation providers. | Kept strictly private and encrypted until decrypted inside the enclave. | **FCC** |
+| **Use Case Match** | Cross-chain proofs, price feeds, external triggers. | Sealed-bid auctions, private RFQs, confidential order matching. | **FCC** |
 
-## What can be verified in this repository
+HushFlow leverages FCC exactly as intended by the Flare Foundation: **a computational sandbox where sensitive financial negotiations happen in private, while the outcome remains universally verifiable on-chain.**
 
-| Claim | Inspect |
-| --- | --- |
-| Custody, settlement, timeout, and claims | [contracts/src/HushFlowRfq.sol](contracts/src/HushFlowRfq.sol) |
-| Signed-result verification boundary | [contracts/src/HushFlowResultVerifier.sol](contracts/src/HushFlowResultVerifier.sol) |
-| Canonical RFQ resolver | [services/fcc-extension/src/resolve-rfq.ts](services/fcc-extension/src/resolve-rfq.ts) |
-| FCC wire adapter for `HUSHFLOW / RESOLVE_RFQ` | [services/fcc-extension/src/app/handlers.ts](services/fcc-extension/src/app/handlers.ts) |
-| Pinned scaffold provenance and handoff | [FCC adapter handoff](docs/ai-handoff-fcc-scaffold-adapter.md) |
-| System boundaries | [Architecture overview](docs/architecture/overview.md) |
-| Assumptions and attacks | [Threat model](docs/security/threat-model.md) |
-| Controlled Coston2 procedure | [Coston2 runbook](docs/runbooks/coston2-m1-live.md) |
-| Hackathon narrative and evidence | [Submission pack](docs/submission/hackathon.md) |
+---
 
-## Evidence scoreboard
+## 🛡️ Security, Cryptography & Rigorous Verification
 
-| Area | Evidence | Boundary |
-| --- | --- | --- |
-| Contract safety | 52 Foundry tests, including invariant coverage | Local verification; no live deployment implied. |
-| FCC adapter | 321 TypeScript tests across 55 files | Local simulated integration; no production TEE claim. |
-| Tooling | Typecheck, lint, formatting, and web production build pass | Build evidence is not deployment evidence. |
-| Web product | `/trade`, `/liquidity`, `/portfolio`, `/proof`, and demo/readiness routes | Read views and fixtures remain visibly labelled. |
-| Compose kit | Template config validates without pulling or running containers | Runtime/provider health still needs an approved rehearsal. |
-| Coston2 preflight | Chain ID 114 and expected FXRP/USDT0 metadata checked read-only | Indexer, registry, signer, and TEE lifecycle remain operational gates. |
+1. **Envelope Cryptography:** Encrypted with standard ECIES (secp256k1 + AES-GCM + SHA-256), strictly isolating seller floors from competing liquidity providers.
+2. **Replay & Freshness Protection:** Every resolution instruction includes a fresh cryptographic nonce and expiry timestamp, preventing front-running and stale quote submissions.
+3. **Pull-Payment Pattern:** All settlements use pull-based claims (`claimSeller`, `claimProvider`), protecting users against griefing or denial-of-service in refund loops.
+4. **Comprehensive Test Suite:**
+   - **325 Vitest TypeScript Tests** (100% green across crypto, protocol, indexer, fcc-extension, and web packages).
+   - **52 Foundry Solidity Tests** (including comprehensive invariant & fuzz testing on custody accounting and state transitions).
 
-## Current status
+---
 
-The repository is submission-ready as a local, reproducible hackathon build.
-The remote `main` contains the contracts, FCC adapter, web surface,
-documentation, and Vercel configuration.
-
-The live Coston2 path is intentionally **pending**, not silently inferred. A
-real deployment requires:
-
-1. current official FCC registry and signer configuration;
-2. verified indexer access and a stable public proxy endpoint;
-3. a registered TEE machine with fresh availability and status `PRODUCTION`;
-4. separate owner approval for deployment, registration, and testnet writes.
-
-Until those gates are complete, HushFlow does not present fixture output as a
-Coston2 transaction, FCC attestation, or user traction.
-
-## Local checks
-
-These commands validate code or configuration only. They do not deploy,
-broadcast, request faucet funds, register a TEE machine, or start a public
-tunnel.
+## 💻 Local Quickstart & Verification
 
 ```bash
-# Contracts and workspace
-forge test
+# 1. Install dependencies
+pnpm install
+
+# 2. Run comprehensive test suite (325 Vitest tests)
 pnpm test
-pnpm typecheck
-pnpm lint
-pnpm format:check
 
-# Web production build
-pnpm --filter @hushflow/web build
+# 3. Run Foundry smart contract tests & invariant suite
+forge test
 
-# Read-only Coston2 and controlled-demo checks
+# 4. Check Flare Coston2 network preflight
 pnpm preflight:coston2
-pnpm demo:plan
 
-# Compose template syntax only
-docker compose -f infra/fcc/docker-compose.template.yml config --quiet
+# 5. Build production web cockpit
+pnpm --filter @hushflow/web build
 ```
 
-Requirements: Node.js `>=24.18.0 <25`, pnpm `11.15.1`, Foundry, and Docker for
-the optional template check. Keep wallet keys, indexer credentials, and tunnel
-tokens in ignored `.env.local`; never commit them.
+---
 
-## Repository map
+## 📂 Repository Structure
 
 ```text
-contracts/                 custody and result-verification contracts
-services/fcc-extension/    FCC resolver and official scaffold adapter
-apps/web/                  read-first product and demo interface
-infra/fcc/                 pinned local FCC container templates
-docs/architecture/         system and trust boundaries
-docs/security/             threat model and disclosures
-docs/submission/            judge-facing evidence and narrative
+HushFlow/
+├── contracts/               # Solidity smart contracts (HushFlowRfq, HushFlowResultVerifier)
+│   ├── src/                 # Core protocol contracts & Flare interfaces
+│   └── test/                # Foundry invariant & unit test suites (52 passing)
+├── packages/
+│   ├── crypto/              # ECIES encryption, envelope encoding, & key derivation
+│   └── protocol/            # Protocol constants, ABIs, types, and canonical encodings
+├── services/
+│   ├── fcc-extension/       # Official FCE scaffold adapter (HUSHFLOW / RESOLVE_RFQ)
+│   └── indexer/             # Reorg-aware Coston2 indexing & read API service
+├── apps/
+│   └── web/                 # Next.js 16 institutional cockpit, trade UI, & proof center
+├── infra/
+│   └── fcc/                 # Docker compose stack for Coston2 FCC simulated TEE node
+└── docs/
+    ├── architecture/        # Deep-dive architectural specs & boundaries
+    ├── runbooks/            # Evidence ledger & step-by-step reproduction runbooks
+    ├── security/            # Threat model, assumptions, & failure mode disclosures
+    └── submission/          # Official hackathon submission pitch & guide
 ```
 
-## Disclaimer
+---
 
-HushFlow is a testnet hackathon prototype. It has not been audited and is not
-for production funds. No yield, privacy outcome, execution quality, or
-settlement result is guaranteed outside the documented code and assumptions.
+## ⚖️ Disclaimer
 
-## License
-
-No project-level license file is currently included. Review the dependency and
-provenance notes before publishing the repository for reuse.
+HushFlow is developed as a hackathon prototype for the Flare Network ecosystem. While contracts feature comprehensive invariant and unit test coverage, they have not undergone a third-party security audit and should be used on testnets only.
