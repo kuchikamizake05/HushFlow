@@ -1,8 +1,8 @@
 # HushFlow: AI Contribution Handoff — FCC Scaffold Adapter
 
-**Date:** 2026-08-14  
+**Date:** 2026-08-14
 **Scope:** Finish the local-simulated FCC/Coston2 integration path for the
-HushFlow hackathon demo.  
+HushFlow hackathon demo.
 **Do not deploy, broadcast, register an extension, request faucet funds, or
 change any third-party credentials without the owner's explicit, separate
 approval.**
