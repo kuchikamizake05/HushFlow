@@ -21,7 +21,7 @@
     "test:coverage": "vitest run --coverage --passWithNoTests && node scripts/setup/run-turbo.mjs test:coverage",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build",
     "preflight:toolchain": "bash -lc 'source scripts/setup/use-local-tools.sh && scripts/setup/check-toolchain.sh'",
-    "preflight:coston2": "tsx scripts/setup/check-coston2.ts",
+    "preflight:coston2": "node --env-file-if-exists=.env.local --import tsx scripts/setup/check-coston2.ts",
     "preflight:fcc": "bash scripts/setup/check-fcc-access.sh",
     "preflight:fcc-container": "bash scripts/setup/check-fcc-container-config.sh",
     "preflight:container-scan": "bash scripts/setup/check-container-scan.sh",
