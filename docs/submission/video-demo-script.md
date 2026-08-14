@@ -4,7 +4,7 @@
 **Target Video Duration:** ~2:45 to 3:00 minutes  
 **Target Resolution:** 1080p (Full HD), Browser Fullscreen / 100% Zoom  
 **Live Web App URL:** `https://hushflow.vercel.app`  
-**Live Enclave Endpoint:** `https://fcc.hushflow.dev/info`  
+**Public Simulated FCC Proxy:** `https://fcc.hushflow.dev/info`  
 **Coston2 Contract Address:** `0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`  
 
 ---
@@ -18,7 +18,7 @@ Prepare and open the following tabs in order:
 3. **Tab 3 (Liquidity Provider - Maker):** `https://hushflow.vercel.app/liquidity`
 4. **Tab 4 (Portfolio & Settlements):** `https://hushflow.vercel.app/portfolio`
 5. **Tab 5 (Proof Center):** `https://hushflow.vercel.app/proof`
-6. **Tab 6 (Live TEE Endpoint):** `https://fcc.hushflow.dev/info`
+6. **Tab 6 (Public Simulated FCC Endpoint):** `https://fcc.hushflow.dev/info`
 7. **Tab 7 (Coston2 Explorer):** `https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`
 
 ---
@@ -49,7 +49,7 @@ graph LR
 > 
 > *Public RFQs leak critical market data. Sellers reveal price floors and market makers leak pricing models, exposing everyone to front-running, sandwich attacks, and predatory MEV.*  
 > 
-> *HushFlow solves this: commercial matching runs inside hardware-isolated **Flare Confidential Compute (FCC)** enclaves, settling atomically on Coston2.*  
+> *HushFlow solves this: commercial matching runs inside isolated **Flare Confidential Compute (FCC)** enclaves, settling atomically on Coston2.*  
 > 
 > *Let’s walk through the full product suite."*
 
@@ -105,7 +105,7 @@ graph LR
 > 🎙️ **Voiceover Script (English):**  
 > *"On the `/portfolio` dashboard, users track their settled positions and escrow balances.*  
 > 
-> *Once our Flare TEE enclave evaluates the envelopes, the on-chain contract enforces terminal claims: the seller receives 4 USDT0, the winning maker receives the FXRP lot, and non-winning makers automatically receive a guaranteed 100% collateral refund through non-custodial pull claims."*
+> *Once our Flare TEE extension evaluates the envelopes, the on-chain contract enforces terminal claims: the seller receives 4 USDT0, the winning maker receives the FXRP lot, and non-winning makers automatically receive a guaranteed 100% collateral refund through non-custodial pull claims."*
 
 ---
 
@@ -114,13 +114,13 @@ graph LR
 * **Screen View:** Switch between Tab 5 (`/proof`), Tab 6 (`fcc.hushflow.dev/info`), and Tab 7 (Coston2 Explorer).
 * **Mouse Actions:**
   1. *(2:25 - 2:35)* In `/proof`, show the audit trail and verifiable attestation receipts.
-  2. *(2:35 - 2:42)* In `https://fcc.hushflow.dev/info`, show the live JSON output (`chainId: 114`, `initialSigningPolicyId: 5936`, `publicKey`).
+  2. *(2:35 - 2:42)* In `https://fcc.hushflow.dev/info`, show the live public simulated proxy response (`chainId: 114`, `initialSigningPolicyId: 5936`, `publicKey`).
   3. *(2:42 - 2:50)* In Coston2 Explorer, show the deployed contract `0x5bdfb417...` and confirmed transactions.
 
 > 🎙️ **Voiceover Script (English):**  
 > *"In our **Proof Center**, every state transition produces verifiable receipts.*  
 > 
-> *Our live Flare TEE endpoint is actively running at `fcc.hushflow.dev/info`, and on the Flare Coston2 Explorer, all 11 lifecycle drill transactions are confirmed on-chain at our deployed contract."*
+> *Our public simulated Flare TEE proxy endpoint is reachable at `fcc.hushflow.dev/info`, and on the Flare Coston2 Explorer, all 11 lifecycle drill transactions are confirmed on-chain at our deployed contract."*
 
 ---
 
