@@ -3,11 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
+export const landingNavItems = [
+  { label: "Features", href: "#features" },
+  { label: "Architecture", href: "#architecture" },
+  { label: "Security", href: "#security" },
+  { label: "Ledger", href: "#ledger" },
+  { label: "Docs ↗", href: "https://dev.flare.network/fcc", external: true },
+];
+
+export const appNavItems = [
   { label: "Trade", href: "/trade" },
   { label: "Liquidity", href: "/liquidity" },
-  { label: "Proof Center", href: "/proof" },
   { label: "Portfolio", href: "/portfolio" },
+  { label: "Proof Center", href: "/proof" },
 ];
 
 function getSafePathname(): string | null {
@@ -20,21 +28,32 @@ function getSafePathname(): string | null {
 
 export function Navigation() {
   const pathname = getSafePathname();
+  const isLanding = pathname === "/";
+  const items = isLanding ? landingNavItems : appNavItems;
 
   return (
     <nav aria-label="Primary navigation" className="raycast-nav-links">
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        return (
+      {items.map((item) =>
+        "external" in item && item.external ? (
+          <a
+            key={item.label}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="raycast-nav-link"
+          >
+            {item.label}
+          </a>
+        ) : (
           <Link
             key={item.label}
             href={item.href}
-            className={`raycast-nav-link ${isActive ? "active-nav-link" : ""}`}
+            className={`raycast-nav-link ${!isLanding && pathname === item.href ? "active-nav-link" : ""}`}
           >
             {item.label}
           </Link>
-        );
-      })}
+        )
+      )}
     </nav>
   );
 }

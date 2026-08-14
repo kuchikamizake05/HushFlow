@@ -1,5 +1,64 @@
 import type { SVGProps } from "react";
 
+export function HushFlowLogo(props: SVGProps<SVGSVGElement> & { size?: number }) {
+  const size = props.size || props.width || 24;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <defs>
+        <linearGradient id="hf-grad-main" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ff5f50" />
+          <stop offset="60%" stopColor="#ff4538" />
+          <stop offset="100%" stopColor="#d82012" />
+        </linearGradient>
+        <linearGradient id="hf-grad-accent" x1="14" y1="6" x2="28" y2="22" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ff7b6e" />
+          <stop offset="100%" stopColor="#ff3322" />
+        </linearGradient>
+        <linearGradient id="hf-grad-glow" x1="16" y1="8" x2="16" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <filter id="hf-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#ff4f40" floodOpacity="0.4" />
+        </filter>
+      </defs>
+
+      <g filter="url(#hf-shadow)">
+        {/* Left Confidential Pillar / Wave */}
+        <path
+          d="M6 9C6 6.79086 7.79086 5 10 5H12C14.2091 5 16 6.79086 16 9V15C16 17.2091 14.2091 19 12 19H10C7.79086 19 6 17.2091 6 15V9Z"
+          fill="url(#hf-grad-main)"
+        />
+        {/* Right Fluid Settlement Wave */}
+        <path
+          d="M16 17C16 14.7909 17.7909 13 20 13H22C24.2091 13 26 14.7909 26 17V23C26 25.2091 24.2091 27 22 27H20C17.7909 27 16 25.2091 16 23V17Z"
+          fill="url(#hf-grad-accent)"
+        />
+        {/* Interlocking Fluid Privacy Ribbon */}
+        <path
+          d="M11 12C11 10.3431 12.3431 9 14 9H18C19.6569 9 21 10.3431 21 12V20C21 21.6569 19.6569 23 18 23H14C12.3431 23 11 21.6569 11 20V12Z"
+          fill="url(#hf-grad-main)"
+          opacity="0.85"
+        />
+        {/* Hardware Enclave Core Point */}
+        <circle cx="16" cy="16" r="2.5" fill="#ffffff" />
+        {/* Top Gloss Highlights */}
+        <path
+          d="M7 9C7 7.34315 8.34315 6 10 6H12C13.6569 6 15 7.34315 15 9V11H7V9Z"
+          fill="url(#hf-grad-glow)"
+        />
+      </g>
+    </svg>
+  );
+}
+
 export function FlareLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" {...props}>

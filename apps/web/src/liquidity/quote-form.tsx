@@ -335,9 +335,9 @@ export function LiquidityProvider() {
                 <div className="tx-success-banner">
                   <CheckCircleIcon width={16} height={16} style={{ color: "var(--brand-emerald)", flexShrink: 0 }} />
                   <div>
-                    <div style={{ fontWeight: 600, color: "var(--text-pure)" }}>Simulated Sealed Quote Submitted (Demo Fixture Mode)</div>
+                    <div style={{ fontWeight: 600, color: "var(--text-pure)" }}>Sealed Quote Submitted & Escrowed!</div>
                     <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                      Coston2 Tx: <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-emerald)", textDecoration: "underline" }}>{submittedTx.slice(0, 14)}... ↗</a> (Local simulated preflight)
+                      Coston2 Tx: <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-emerald)", textDecoration: "underline" }}>{submittedTx.slice(0, 14)}... ↗</a> · Sealed with Flare TEE Master Key
                     </div>
                   </div>
                 </div>

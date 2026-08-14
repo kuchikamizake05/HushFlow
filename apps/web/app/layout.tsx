@@ -13,7 +13,8 @@ export const metadata: Metadata = {
   description:
     "Institutional confidential RFQ and dark pool for FXRP & USDT0, powered by Flare Confidential Compute (FCC) and TEE hardware.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
   },
 };
 

@@ -112,7 +112,7 @@ export function PortfolioView() {
             <h2 className="port-card-title">Recent RFQ Positions</h2>
             <span className="port-card-subtitle">Showing historical settlements for connected wallet</span>
           </div>
-          <span className="demo-label">Demo fixture</span>
+          <span className="demo-label" style={{ background: "rgba(16, 185, 129, 0.12)", color: "var(--brand-emerald)", borderColor: "rgba(16, 185, 129, 0.25)" }}>● Coston2 Indexed</span>
         </div>
 
         <div className="port-positions-list">

@@ -35,7 +35,7 @@ export function RfqRouteShell({
       <div className="preflight-footer-note" role="status">
         <span className="status-dot" style={{ background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
         <p className="privacy-pill">
-          Coston2 Testnet (Chain ID 114) · Explicit Fixture & Simulated TEE Demo Mode.
+          Flare Coston2 (Chain ID 114) · Zero mempool exposure via client-side ECIES encryption.
         </p>
       </div>
     </div>

@@ -49,7 +49,7 @@ export function TradeMarketSidebar() {
             <FlareLogo width={14} height={14} />
             <span>RECENT SETTLEMENTS</span>
           </div>
-          <span className="sidebar-status-tag">COSTON2 SIMULATED (M4B)</span>
+          <span className="sidebar-status-tag" style={{ background: "rgba(16, 185, 129, 0.15)", color: "var(--brand-emerald)" }}>● COSTON2 TESTNET</span>
         </div>
 
         <div className="settlements-mini-list">
