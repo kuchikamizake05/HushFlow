@@ -1,0 +1,54 @@
+# HushFlow FCC Coston2 local stack (Simulated TEE)
+name: hushflow-fcc-coston2
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "6382:6379"
+    tmpfs:
+      - /data
+
+  ext-proxy:
+    build:
+      context: ../..
+      dockerfile: infra/fcc/proxy.Dockerfile
+    volumes:
+      - ./extension_proxy.coston2.docker.toml:/app/config/config.toml:ro
+    environment:
+      - PROXY_PRIVATE_KEY=${PROXY_PRIVATE_KEY:-983760a4ebf75b2ac3a93531168a0f225d01e5dc6e3568adbd46233ba1fb4fa4}
+    ports:
+      - "6663:6663"
+      - "6664:6664"
+    depends_on:
+      - redis
+
+  tee-node:
+    build:
+      context: ../..
+      dockerfile: infra/fcc/tee-node.Dockerfile
+    environment:
+      - MODE=1
+      - SIMULATED_TEE=true
+      - CHAIN_ID=114
+      - CHAIN_URL=https://coston2-api.flare.network/ext/C/rpc
+      - PROXY_URL=http://ext-proxy:6663
+      - CONFIG_PORT=5501
+      - SIGN_PORT=7701
+      - EXTENSION_PORT=7702
+      - LOG_LEVEL=INFO
+    depends_on:
+      - ext-proxy
+
+  hushflow-extension:
+    build:
+      context: ../..
+      dockerfile: services/fcc-extension/Dockerfile
+    network_mode: service:tee-node
+    environment:
+      - EXTENSION_PORT=7702
+      - SIGN_PORT=7701
+    depends_on:
+      tee-node:
+        condition: service_started

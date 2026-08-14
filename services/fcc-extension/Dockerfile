@@ -5,14 +5,14 @@ FROM node:24.18.0-bookworm-slim AS build
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages/protocol/package.json packages/protocol/package.json
 COPY services/fcc-extension/package.json services/fcc-extension/package.json
 RUN corepack enable && pnpm install --frozen-lockfile --filter @hushflow/fcc-extension...
 
 COPY packages/protocol packages/protocol
 COPY services/fcc-extension services/fcc-extension
-RUN pnpm --filter @hushflow/fcc-extension build
+RUN pnpm --filter @hushflow/protocol build && pnpm --filter @hushflow/fcc-extension build
 
 FROM node:24.18.0-bookworm-slim AS runtime
 

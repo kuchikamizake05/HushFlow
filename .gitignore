@@ -22,6 +22,8 @@ test-results/
 # FCC-generated local configuration and secrets
 services/fcc-extension/config/extension.env
 services/fcc-extension/config/proxy/*.toml
+infra/fcc/*.toml
+infra/fcc/local-config/
 
 # Foundry
 contracts/lib/
