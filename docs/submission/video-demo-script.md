@@ -120,7 +120,9 @@ graph LR
 > 🎙️ **Voiceover Script (English):**  
 > *"In our **Proof Center**, every state transition produces verifiable receipts.*  
 > 
-> *Our public simulated Flare TEE proxy endpoint is reachable at `fcc.hushflow.dev/info`, and on the Flare Coston2 Explorer, all 11 lifecycle drill transactions are confirmed on-chain at our deployed contract."*
+> *Our public simulated Flare TEE proxy endpoint is reachable at `fcc.hushflow.dev/info`, powering the settlement drill where all 11 lifecycle transactions are confirmed on-chain on Coston2.*  
+> 
+> *HushFlow proves a real 11-transaction settlement lifecycle on Coston2, while its FCC integration runs through Flare’s official scaffold in simulated-TEE mode for the hackathon. The same architecture is designed to seamlessly transition to a registered GCP Confidential Space production enclave through the standard on-chain FCC registration flow."*
 
 ---
 
@@ -130,7 +132,7 @@ graph LR
 * **Mouse Actions:** Scroll briefly past the architecture diagram and security disclosures.
 
 > 🎙️ **Voiceover Script (English):**  
-> *"With 325 passing automated tests, formal invariant suites, and complete Flare FCC integration, HushFlow brings true confidential trading to XRPFi. Thank you for evaluating our submission!"*
+> *"With 325 passing automated tests, formal invariant suites, and complete Flare FCC integration, HushFlow brings verifiable, confidential trading to XRPFi. Thank you for evaluating our submission!"*
 
 ---
 
