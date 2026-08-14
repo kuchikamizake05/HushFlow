@@ -1,90 +1,199 @@
 # HushFlow
 
-HushFlow is a confidential trading execution layer for XRPFi. The hackathon MVP
-is a private RFQ: a seller offers a fixed amount of FXRP for USDT0, providers
-submit encrypted quotes, Flare Confidential Compute selects the highest valid
-quote, and a Coston2 contract verifies and settles the signed result.
+> Private RFQs for XRPFi. Sealed terms, verifiable settlement.
 
-The approved product and protocol design is in docs/superpowers/specs/2026-07-22-hushflow-design.md. The dependency-ordered implementation plan is in docs/superpowers/plans/2026-07-22-hushflow-implementation-plan.md.
+HushFlow is a confidential request-for-quote protocol for FXRP on Flare. A
+seller's reservation price and liquidity-provider quotes are encrypted before
+they reach the FCC workflow. Flare Confidential Compute (FCC) evaluates the
+sealed terms, and the custody contract settles only a result that passes its
+on-chain verification boundary.
 
-## What is ready
+**Submission status:** local product, contracts, FCC adapter, and submission
+materials are ready. Coston2 operational readiness is in progress. This
+repository does **not** claim a deployed HushFlow contract, a registered
+production TEE machine, an FCC attestation, or a completed Coston2 trade.
 
-- M1 local FCC vertical slice: encrypted resolution, signed-result verification,
-  settlement/refund, replay protection, and one-time signer initialization.
-- M2 contract hardening, M3 frozen protocol/crypto interfaces, M4A read indexer,
-  and M4B judge-first web experience are merged on `main`.
-- The UI starts in explicit fixture mode. It never represents fixture data as
-  live, never sends private quote/minimum values to a read API, and fails closed
-  for writes before live deployment/RPC checks.
+[![Flare Coston2](https://img.shields.io/badge/Flare-Coston2%20%28chain%20114%29-E84142?style=flat-square)](https://dev.flare.network/network/overview)
+[![FCC](https://img.shields.io/badge/Flare%20Confidential%20Compute-SIMULATED__TEE%20ready-0F9D8A?style=flat-square)](https://dev.flare.network/fcc/guides/getting-started)
+[![TypeScript tests](https://img.shields.io/badge/TypeScript-321%20passing-3178C6?style=flat-square)](services/fcc-extension)
+[![Foundry tests](https://img.shields.io/badge/Foundry-52%20passing-38BDF8?style=flat-square)](contracts/test)
+[![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)](LICENSE)
 
-See [architecture overview](docs/architecture/overview.md),
-[threat model](docs/security/threat-model.md), and the
-[hackathon submission guide](docs/submission/hackathon.md).
+## The problem
 
-## Live status
+An RFQ can have public custody while its commercial terms must remain private.
+Publishing a seller's floor or a provider's quote exposes negotiation intent
+before settlement. HushFlow is designed for the narrow XRPFi case where a
+seller escrows a fixed FXRP lot, multiple providers compete with sealed USDT0
+quotes, and the best valid quote settles through explicit contract rules.
 
-No Coston2 transaction or FCC deployment is claimed yet. Live validation still
-needs organizer-issued read-only indexer credentials, confirmation of the live
-FCC registry/signer configuration, a temporary Coston2-only proxy route, and a
-separate explicit approval before any testnet broadcast.
+## What HushFlow does
 
-## Canonical development environment
+1. The seller creates an RFQ with a public FXRP lot and an encrypted minimum.
+2. Providers submit encrypted USDT0 quotes and public collateral.
+3. FCC resolves the sealed inputs and produces a bound result.
+4. `HushFlowResultVerifier` validates the result against the configured
+   verification boundary.
+5. `HushFlowRfq` computes terminal entitlements: seller proceeds, winner asset
+   claim, and losing-provider collateral refunds.
 
-- Windows 11 host
-- WSL2 Ubuntu 24.04 shell
-- Docker Desktop with WSL integration
-- Node.js, pnpm, Go, and Foundry versions from .tool-versions
+The protocol is non-custodial at settlement: funds move through pull claims
+instead of a privileged operator distributing balances.
 
-From WSL2:
+## How it fits together
 
-    bash scripts/setup/bootstrap-tools.sh
-    source scripts/setup/use-local-tools.sh
-    pnpm install --frozen-lockfile
-    pnpm preflight:toolchain
-    pnpm verify
+```text
+Seller                         Providers
+  |                               |
+  | encrypted minimum             | encrypted quotes + collateral
+  +---------------+---------------+
+                  |
+                  v
+       HushFlow RFQ custody contract
+                  |
+                  | FCC instruction
+                  v
+   Flare Compute Extension (SIMULATED_TEE on Coston2)
+                  |
+                  | signed, bound result
+                  v
+       HushFlowResultVerifier -> HushFlowRfq
+                  |
+                  v
+      seller proceeds / winner FXRP / provider refunds
+```
 
-No push, deployment, public tunnel, faucet request, or other external mutation is implied by the local setup commands.
+## What is private, and what is not
 
-## M1 live kit (safe preparation)
+| Surface | Public | Protected by the design |
+| --- | --- | --- |
+| RFQ | asset lot, lifecycle, custody state | seller reservation minimum |
+| Quote | provider address, collateral, lifecycle | provider quote amount |
+| FCC resolution | result metadata needed for settlement | plaintext RFQ inputs during evaluation |
+| Settlement | terminal claim state and transaction evidence | prior sealed commercial terms |
 
-The following commands only validate local configuration or simulate deployment:
+HushFlow does not claim that encrypted application data makes every aspect of
+execution private. Contract calls, encrypted payloads, public lifecycle data,
+and final settlement evidence remain observable. Read the
+[threat model](docs/security/threat-model.md) for the precise security boundary.
 
-    set -a
-    source .env.local
-    set +a
-    pnpm preflight:coston2
-    pnpm preflight:fcc-container
-    docker compose -f infra/fcc/docker-compose.template.yml config --quiet
-    pnpm preflight:fcc
-    pnpm plan:coston2
-    forge script contracts/script/DeployHushFlow.s.sol:DeployHushFlow --rpc-url "$COSTON2_RPC_URL"
+## Why Flare
 
-The default template builds the official Flare `tee-node` source pinned to
-`v0.0.24` and commit `adc67a29eb7162f6f1b5dabcbca320009480695e`. If Flare or
-the organizer supplies a prebuilt image, use
-`infra/fcc/docker-compose.image.template.yml`; the preflight accepts it only
-with an immutable `@sha256` digest and a recorded publication source. Both
-modes share the tee-node network namespace with the HushFlow extension, so the
-signing/decrypt port stays private and no service publishes a port.
+| Flare primitive | Role in HushFlow |
+| --- | --- |
+| Flare Confidential Compute / FCE | Processes sealed RFQ instructions and returns a verifiable result. |
+| Coston2 | Testnet environment for the planned three-wallet validation. |
+| FXRP | Asset lot offered by the seller in the RFQ flow. |
+| USDT0 | Provider collateral and settlement denomination. |
 
-`docker compose ... config` and the preflight only validate configuration. They
-do not pull, build, run, register, tunnel, or broadcast. A later explicit
-`docker compose build` may access the network to fetch the reviewed source.
-Use [the M1 runbook](docs/runbooks/coston2-m1-live.md) for the controlled
-three-wallet sequence and evidence ledger.
+FCC is the correct primitive here because the decision depends on private
+mutual commercial terms, not on proving an observable external event.
 
-## M5 demo readiness (no broadcast)
+## Judge's tour
 
-`pnpm demo:plan` emits a sanitized, deterministic readiness plan for the
-controlled seller/provider A/provider B scenario. It accepts no private key,
-cannot sign or broadcast, and reports missing prerequisites by name only. The
-internal [readiness dashboard](/demo/readiness) renders the same public plan;
-it has no wallet connection or transaction control. Both are preparation for a
-later approved Coston2 run, not evidence of a live demo.
+Start here; every item is local source or documented evidence, not a claim of
+live deployment.
 
-## M6 release preparation (no external side effects)
+| What to inspect | Where |
+| --- | --- |
+| RFQ custody, claim paths, and terminal settlement | [HushFlowRfq.sol](contracts/src/HushFlowRfq.sol) |
+| Result-domain verification boundary | [HushFlowResultVerifier.sol](contracts/src/HushFlowResultVerifier.sol) |
+| Contract regression and invariant suite | [contracts/test](contracts/test) |
+| Canonical private-RFQ resolution | [resolve-rfq.ts](services/fcc-extension/src/resolve-rfq.ts) |
+| Official FCC wire adapter for `HUSHFLOW / RESOLVE_RFQ` | [app handler](services/fcc-extension/src/app/handlers.ts) |
+| FCC adapter tests and pinned provenance | [adapter handoff](docs/ai-handoff-fcc-scaffold-adapter.md) |
+| Architecture and component boundaries | [architecture overview](docs/architecture/overview.md) |
+| Trust assumptions and attack boundaries | [threat model](docs/security/threat-model.md) |
+| Submission narrative and evidence index | [hackathon pack](docs/submission/hackathon.md) |
+| Controlled Coston2 runbook | [live runbook](docs/runbooks/coston2-m1-live.md) |
 
-`pnpm release:drills` lists the controlled operational-failure matrix for a
-later live rehearsal. `pnpm preflight:container-scan` validates an explicit
-digest image and local Trivy availability but does not pull or scan anything.
-An actual vulnerability scan is a separately reviewed operator action.
+## Current status
+
+| Area | Status | Evidence / boundary |
+| --- | --- | --- |
+| RFQ contracts and verifier | Implemented and locally tested | 52 Foundry tests, including invariant calls. |
+| FCC resolver and scaffold adapter | Implemented and locally tested | 321 TypeScript tests pass across 55 files. |
+| Typecheck, lint, and formatting | Locally verified | TypeScript, ESLint, and Prettier checks passed. |
+| FCC Docker template | Structurally valid | Compose config was validated without pulling or running containers. |
+| Web interface | Present as a read-only/demo surface | Live wallet writes are not acceptance evidence. |
+| Coston2 RPC and token metadata | Read-only preflight verified | Chain ID 114; expected FXRP and USDT0 addresses are frozen locally. |
+| Indexer and tunnel prerequisites | User-configured; pending runtime verification | Credentials and named Cloudflare Tunnel are local secrets/configuration. |
+| Contract deployment and extension registration | Not claimed | Requires separate explicit owner approval. |
+| Production TEE machine and real FCC result | Not claimed | Requires current official FCC lifecycle configuration and Coston2 execution. |
+
+## Coston2 path
+
+The intended controlled test uses three distinct testnet wallets:
+
+1. Seller deposits the FXRP lot and creates a sealed RFQ.
+2. Provider A and Provider B submit sealed quotes with USDT0 collateral.
+3. FCC resolves the RFQ; the contract verifies the result.
+4. Seller, winner, and non-winner claim their respective terminal balances.
+
+The repository intentionally blocks this path until the following are true:
+
+- Coston2 prerequisites and the public endpoint are healthy;
+- the current official FCC registry/signer configuration has been verified;
+- the TEE machine reaches `PRODUCTION` with fresh availability;
+- the owner explicitly approves the relevant deployment and registration
+  transactions.
+
+This is an operational safety boundary, not a missing product claim. See the
+[Coston2 M1 runbook](docs/runbooks/coston2-m1-live.md) for the exact gates.
+
+## Local verification
+
+These commands validate local code or configuration. They do not deploy
+contracts, request faucet funds, register an extension, start a public tunnel,
+or broadcast a transaction.
+
+```bash
+# Contracts
+forge test
+
+# Workspace tests, types, style, and lint
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm format:check
+
+# Safe Coston2 and controlled-demo checks
+pnpm preflight:coston2
+pnpm demo:plan
+
+# Validate the FCC Compose template only
+docker compose -f infra/fcc/docker-compose.template.yml config --quiet
+```
+
+The project requires Node.js `>=24.18.0 <25` and pnpm `11.15.1`. Copy
+`.env.example` to ignored `.env.local`; never commit wallet keys, indexer
+credentials, or Cloudflare tunnel tokens.
+
+## Built for the hackathon
+
+HushFlow's application protocol, contracts, tests, verifier, and TypeScript
+FCC adapter were built in this repository. The adapter pins the relevant
+official FCE scaffold wire components and routes `HUSHFLOW / RESOLVE_RFQ` into
+HushFlow's canonical resolver. The project preserves the upstream framework
+boundary rather than presenting generic FDC proofs as an answer to private
+agreement evaluation.
+
+## Next milestones
+
+1. Validate the local FCC stack against the current Coston2 configuration.
+2. Deploy and register only after explicit owner approval.
+3. Reach a fresh `PRODUCTION` TEE machine state and execute the controlled
+   three-wallet scenario.
+4. Record explorer links and a demo video only after the underlying actions
+   have actually succeeded.
+
+## Disclaimer
+
+HushFlow is a hackathon prototype for testnet evaluation. It has not been
+audited and is not suitable for production funds. No performance, privacy, or
+settlement outcome is guaranteed beyond the behavior of the deployed code and
+the documented assumptions.
+
+## License
+
+[MIT](LICENSE)
