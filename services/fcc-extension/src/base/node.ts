@@ -16,7 +16,10 @@ export class NodeClient {
   readonly signPort: number;
   readonly timeoutMs: number;
 
-  constructor(signPort: string | number, timeoutMs: number = DEFAULT_TIMEOUT_MS) {
+  constructor(
+    signPort: string | number,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS,
+  ) {
     this.signPort = Number(signPort);
     this.timeoutMs = timeoutMs;
   }
@@ -60,7 +63,9 @@ export class NodeClient {
       return await res.json();
     } catch (e) {
       if (e instanceof Error && e.name === "AbortError") {
-        throw new Error(`node request to ${path} timed out after ${this.timeoutMs}ms`);
+        throw new Error(
+          `node request to ${path} timed out after ${this.timeoutMs}ms`,
+        );
       }
       throw e;
     } finally {

@@ -14,7 +14,9 @@ import { stringToBytes32Hex } from "./encoding.js";
  * [dataHexOrNull, status, errorOrNull]. May be async.
  */
 export type HandlerResult = [string | null, number, string | null];
-export type HandlerFunc = (msg: string) => HandlerResult | Promise<HandlerResult>;
+export type HandlerFunc = (
+  msg: string,
+) => HandlerResult | Promise<HandlerResult>;
 
 /** Returns any JSON-serializable snapshot of extension state. */
 export type ReportStateFunc = () => unknown;

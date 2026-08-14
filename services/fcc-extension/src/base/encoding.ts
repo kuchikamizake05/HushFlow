@@ -50,7 +50,9 @@ export function bytesToHex(b: Uint8Array): string {
 export function stringToBytes32Hex(s: string): string {
   const encoded = new TextEncoder().encode(s);
   if (encoded.length > 32) {
-    throw new Error(`string too long for bytes32 (${encoded.length} bytes): ${s}`);
+    throw new Error(
+      `string too long for bytes32 (${encoded.length} bytes): ${s}`,
+    );
   }
   const padded = new Uint8Array(32);
   padded.set(encoded);

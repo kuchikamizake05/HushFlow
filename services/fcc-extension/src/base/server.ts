@@ -10,7 +10,11 @@
 
 import http from "node:http";
 
-import { bytes32HexToString, hexToBytes, stringToBytes32Hex } from "./encoding.js";
+import {
+  bytes32HexToString,
+  hexToBytes,
+  stringToBytes32Hex,
+} from "./encoding.js";
 import {
   Framework,
   type Action,
@@ -142,7 +146,9 @@ export class Server {
       return [
         400,
         { "content-type": "application/json" },
-        JSON.stringify({ error: `invalid DataFixed JSON in message: ${String(e)}` }),
+        JSON.stringify({
+          error: `invalid DataFixed JSON in message: ${String(e)}`,
+        }),
       ];
     }
     if (!df || typeof df !== "object" || !df.opType) {
@@ -189,10 +195,16 @@ export class Server {
         `opCommand=${bytes32HexToString(df.opCommand)} status=${status}`,
     );
 
-    return [200, { "content-type": "application/json" }, JSON.stringify(result)];
+    return [
+      200,
+      { "content-type": "application/json" },
+      JSON.stringify(result),
+    ];
   }
 
-  private async processState(): Promise<[number, Record<string, string>, string]> {
+  private async processState(): Promise<
+    [number, Record<string, string>, string]
+  > {
     const state = await this.serialize(() => this.reportState());
     const resp: StateResponse = {
       stateVersion: this.stateVersionHex,
@@ -225,7 +237,12 @@ export class Server {
     try {
       body = await readBody(req);
     } catch {
-      return send(res, 400, { "content-type": "application/json" }, JSON.stringify({ error: "failed to read body" }));
+      return send(
+        res,
+        400,
+        { "content-type": "application/json" },
+        JSON.stringify({ error: "failed to read body" }),
+      );
     }
 
     const [status, headers, payload] = await this.handleRequest(

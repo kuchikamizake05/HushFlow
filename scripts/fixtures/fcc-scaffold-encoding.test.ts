@@ -11,11 +11,15 @@ import {
 
 describe("hexToBytes", () => {
   it("round-trips", () => {
-    expect(Array.from(hexToBytes("0xdeadbeef"))).toEqual([0xde, 0xad, 0xbe, 0xef]);
+    expect(Array.from(hexToBytes("0xdeadbeef"))).toEqual([
+      0xde, 0xad, 0xbe, 0xef,
+    ]);
   });
 
   it("accepts bare hex", () => {
-    expect(Array.from(hexToBytes("deadbeef"))).toEqual([0xde, 0xad, 0xbe, 0xef]);
+    expect(Array.from(hexToBytes("deadbeef"))).toEqual([
+      0xde, 0xad, 0xbe, 0xef,
+    ]);
   });
 
   it("decodes Go's empty hexutil.Bytes", () => {
@@ -56,7 +60,9 @@ describe("bytes32", () => {
   });
 
   it("matches the Solidity bytes32 literal", () => {
-    expect(stringToBytes32Hex("GREETING")).toBe(`0x4752454554494e47${"00".repeat(24)}`);
+    expect(stringToBytes32Hex("GREETING")).toBe(
+      `0x4752454554494e47${"00".repeat(24)}`,
+    );
   });
 
   it("encodes the empty string as all zeros", () => {
@@ -64,7 +70,14 @@ describe("bytes32", () => {
   });
 
   it("round-trips", () => {
-    for (const s of ["GREETING", "SAY_HELLO", "SAY_GOODBYE", "HUSHFLOW", "RESOLVE_RFQ", ""]) {
+    for (const s of [
+      "GREETING",
+      "SAY_HELLO",
+      "SAY_GOODBYE",
+      "HUSHFLOW",
+      "RESOLVE_RFQ",
+      "",
+    ]) {
       expect(bytes32HexToString(stringToBytes32Hex(s))).toBe(s);
     }
   });

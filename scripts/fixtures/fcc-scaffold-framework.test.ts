@@ -3,7 +3,10 @@
 import { describe, expect, it } from "vitest";
 
 import { stringToBytes32Hex } from "../../services/fcc-extension/src/base/encoding.js";
-import { Framework, type HandlerResult } from "../../services/fcc-extension/src/base/types.js";
+import {
+  Framework,
+  type HandlerResult,
+} from "../../services/fcc-extension/src/base/types.js";
 
 const h = (name: string) => (): HandlerResult => [null, 1, name];
 

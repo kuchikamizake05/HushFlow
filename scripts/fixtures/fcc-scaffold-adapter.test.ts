@@ -85,8 +85,7 @@ function createSampleDeps(
         return JSON.stringify(plain);
       }),
     createResultNonce:
-      overrides.createResultNonce ??
-      (() => `0x${"3".repeat(64)}` as Hex),
+      overrides.createResultNonce ?? (() => `0x${"3".repeat(64)}` as Hex),
   };
 }
 
