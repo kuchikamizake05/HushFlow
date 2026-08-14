@@ -104,4 +104,39 @@ describe("M5 demo readiness", () => {
     expect(result).toMatchObject({ state: "INVALID" });
     expect(JSON.stringify(result)).not.toContain(malformed);
   });
+
+  it("considers FCC_INDEXER_ACCESS present only when all 5 FCC_INDEXER_DB_* fields are non-empty", () => {
+    const fullEnv: NodeJS.ProcessEnv = {
+      HUSHFLOW_SELLER_ADDRESS: ADDRESS.seller,
+      HUSHFLOW_PROVIDER_A_ADDRESS: ADDRESS.providerA,
+      HUSHFLOW_PROVIDER_B_ADDRESS: ADDRESS.providerB,
+      COSTON2_RPC_URL: "https://coston2-api.flare.network/ext/C/rpc",
+      FCC_EXT_PROXY_URL: "https://fcc.hushflow.dev",
+      FCC_TEE_EXTENSION_REGISTRY: "0x1111111111111111111111111111111111111111",
+      FCC_TEE_MACHINE_REGISTRY: "0x2222222222222222222222222222222222222222",
+      FCC_TEE_SIGNER: "0x3333333333333333333333333333333333333333",
+      FCC_INDEXER_DB_HOST: "34.38.42.208",
+      FCC_INDEXER_DB_PORT: "3306",
+      FCC_INDEXER_DB_NAME: "indexer",
+      FCC_INDEXER_DB_USER: "hackathon_user_58",
+      FCC_INDEXER_DB_PASSWORD: "secret-password",
+    };
+
+    const readyReport = buildDemoCliReport(fullEnv);
+    const indexerReq = readyReport.requirements.find(
+      (r) => r.name === "FCC_INDEXER_ACCESS",
+    );
+    expect(indexerReq?.present).toBe(true);
+
+    // Missing password
+    const missingPasswordEnv = { ...fullEnv, FCC_INDEXER_DB_PASSWORD: "" };
+    const blockedReport = buildDemoCliReport(missingPasswordEnv);
+    const blockedIndexerReq = blockedReport.requirements.find(
+      (r) => r.name === "FCC_INDEXER_ACCESS",
+    );
+    expect(blockedIndexerReq?.present).toBe(false);
+    expect(blockedReport.reasons).toContain("MISSING:FCC_INDEXER_DB_PASSWORD");
+    expect(JSON.stringify(blockedReport)).not.toContain("secret-password");
+  });
 });
+

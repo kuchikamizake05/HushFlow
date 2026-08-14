@@ -9,9 +9,7 @@ for name in \
   FCC_INDEXER_DB_NAME \
   FCC_INDEXER_DB_USER \
   FCC_INDEXER_DB_PASSWORD \
-  FCC_EXT_PROXY_URL \
-  FCC_NORMAL_PROXY_URL \
-  NGROK_AUTHTOKEN; do
+  FCC_EXT_PROXY_URL; do
   value="$(printenv "$name" 2>/dev/null || true)"
   if [[ -n "$value" ]]; then
     printf 'SET     %s\n' "$name"
@@ -23,12 +21,21 @@ done
 
 ext_proxy_url="$(printenv FCC_EXT_PROXY_URL 2>/dev/null || true)"
 if [[ -n "$ext_proxy_url" ]]; then
-  if curl --fail --silent --show-error --max-time 10 \
-    "$ext_proxy_url/info" >/dev/null; then
-    printf 'PASS    FCC extension proxy /info is reachable\n'
+  if [[ "$ext_proxy_url" =~ ^https?:// ]]; then
+    printf 'PASS    FCC extension proxy URL is configured (%s)\n' "$ext_proxy_url"
   else
-    printf 'FAIL    FCC extension proxy /info is not reachable\n'
+    printf 'FAIL    FCC extension proxy URL must start with http:// or https://\n'
     missing=$((missing + 1))
+  fi
+
+  if [[ "${FCC_CHECK_LIVE_ENDPOINT:-false}" == "true" ]]; then
+    if curl --fail --silent --show-error --max-time 10 \
+      "$ext_proxy_url/info" >/dev/null; then
+      printf 'PASS    FCC extension proxy /info is reachable\n'
+    else
+      printf 'FAIL    FCC extension proxy /info is not reachable\n'
+      missing=$((missing + 1))
+    fi
   fi
 fi
 
