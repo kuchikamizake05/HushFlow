@@ -5,25 +5,41 @@
 <h1 align="center">HushFlow</h1>
 
 <p align="center">
-  <strong>Verifiable, Confidential RFQ & Settlement Layer for XRPFi on Flare Network</strong><br />
+  <strong>Verifiable, Confidential RFQ & Dark Settlement Layer for XRPFi on Flare Network</strong><br />
   Keep commercial pricing terms strictly confidential off-chain, while enforcing verifiable, mathematical settlement on Coston2.
 </p>
 
 <p align="center">
+  <a href="https://hushflow.vercel.app"><strong>🌐 Live Web App (Vercel)</strong></a> ·
   <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"><strong>📜 Coston2 Contract</strong></a> ·
   <a href="https://fcc.hushflow.dev/info"><strong>⚡ Live TEE Enclave</strong></a> ·
-  <a href="docs/submission/hackathon.md"><strong>🏆 Hackathon Submission Pack</strong></a> ·
+  <a href="docs/submission/hackathon.md"><strong>🏆 Hackathon Pack</strong></a> ·
   <a href="docs/architecture/overview.md"><strong>🏛️ Architecture</strong></a> ·
   <a href="docs/security/threat-model.md"><strong>🛡️ Threat Model</strong></a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Coston2-Chain%20114%20(Deployed)-E84142?style=for-the-badge&logo=flare" alt="Flare Coston2" />
+  <a href="https://hushflow.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-hushflow.vercel.app-00E599?style=for-the-badge&logo=vercel" alt="Live Demo on Vercel" /></a>
+  <a href="https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab"><img src="https://img.shields.io/badge/Coston2-Chain%20114%20(Deployed)-E84142?style=for-the-badge&logo=flare" alt="Flare Coston2" /></a>
   <img src="https://img.shields.io/badge/On--Chain%20Evidence-11%2F11%20Verified%20Txns-0F9D8A?style=for-the-badge" alt="11/11 Verified Coston2 Txns" />
   <img src="https://img.shields.io/badge/Flare%20FCC-Official%20Scaffold%20Adapter-8B5CF6?style=for-the-badge" alt="Flare FCC" />
   <img src="https://img.shields.io/badge/Tests-325%20Passing%20(100%25)-38BDF8?style=for-the-badge" alt="325 Vitest Tests" />
   <img src="https://img.shields.io/badge/Foundry-52%20Passing%20(Invariants)-F59E0B?style=for-the-badge" alt="52 Foundry Tests" />
 </p>
+
+---
+
+## 🚀 30-Second Judge Tour (Test the Live App)
+
+Judges can explore the end-to-end confidential RFQ lifecycle directly on the live web app at **[hushflow.vercel.app](https://hushflow.vercel.app)**:
+
+1. **Institutional Cockpit (`/trade`):** View the live FXRP/USDT0 order book, interactive depth chart, and Flare FTSO V2 reference price anchor.
+2. **Interactive TEE Simulation (`/demo`):** Step through the confidential RFQ flow:
+   - *Step 1:* Seller deposits FXRP lot with an encrypted reserve floor.
+   - *Step 2:* Competing Liquidity Providers submit sealed ECIES-encrypted quotes.
+   - *Step 3:* Trigger Flare Confidential Compute (FCC) matching in the secure enclave.
+   - *Step 4:* Verify on-chain settlement and pull-based collateral claims.
+3. **Cryptographic Proof Center (`/proof`):** Inspect verified transaction proofs and direct explorer receipts on Flare Coston2 Testnet.
 
 ---
 
@@ -45,6 +61,7 @@ In public Request-for-Quote (RFQ) and order book protocols on XRPFi, **informati
 
 | Component | Target / Address | Explorer / Link |
 | :--- | :--- | :--- |
+| **Live Web App** | `https://hushflow.vercel.app` | [Open Web App](https://hushflow.vercel.app) |
 | **HushFlowRfq (Custody & Settlement)** | `0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab) |
 | **FXRP Token (FTestXRP)** | `0x0b6A3645c240605887a5532109323A3E12273dc7` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0x0b6A3645c240605887a5532109323A3E12273dc7) |
 | **USDT0 Collateral Token (USD₮0)** | `0xC1A5B41512496B80903D1f32d6dEa3a73212E71F` | [View on Coston2 Explorer](https://coston2-explorer.flare.network/address/0xC1A5B41512496B80903D1f32d6dEa3a73212E71F) |
@@ -108,15 +125,19 @@ HushFlow has verified and recorded the full multi-party RFQ lifecycle on Flare C
 
 ---
 
-## 💡 Why Flare FCC is the Ideal Primitive for RFQ Execution
+## 💡 Flare Ecosystem Synergy (FCC + FTSO V2)
 
-| Dimension | Flare Data Connector (FDC) | Flare Confidential Compute (FCC) | HushFlow Fit |
-| :--- | :--- | :--- | :---: |
-| **Primary Purpose** | Attestation of public state (web2 APIs, other chains). | Secure multi-party computation over private/confidential inputs. | **FCC** |
-| **Input Visibility** | Must be publicly verifiable by consensus attestation providers. | Kept strictly private and encrypted until decrypted inside the enclave. | **FCC** |
-| **Use Case Match** | Cross-chain proofs, price feeds, external triggers. | Sealed-bid auctions, private RFQs, confidential order matching. | **FCC** |
+HushFlow natively integrates the core primitives of the Flare Network:
 
-HushFlow leverages FCC exactly as intended by the Flare Foundation: **a computational sandbox where sensitive financial negotiations happen in private, while the outcome remains universally verifiable on-chain.**
+1. **Flare Confidential Compute (FCC):** Provides the off-chain cryptographic enclave where sensitive negotiations occur without exposing order intent to the public mempool.
+2. **Flare Time Series Oracle (FTSO V2):** Provides real-time decentralized price reference anchors for FXRP/USDT0 directly inside the trading cockpit and telemetry bars.
+3. **Flare Coston2 / EVM:** Provides final, non-custodial on-chain asset custody and pull-based settlements.
+
+| Primitive | Role in HushFlow | Why It Matters |
+| :--- | :--- | :--- |
+| **FCC (TEE Enclave)** | Private quote matching & signing | Eliminates front-running, copy-trading, and toxic MEV. |
+| **FTSO V2 Anchor** | Fair reference pricing | Prevents off-market quote manipulation and fat-finger errors. |
+| **Coston2 Smart Contracts** | Non-custodial escrow & claims | Enforces deterministic settlement without counterparty risk. |
 
 ---
 
