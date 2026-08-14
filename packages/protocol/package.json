@@ -4,16 +4,56 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./abi": "./src/abi.ts",
-    "./amounts": "./src/amounts.ts",
-    "./constants": "./src/constants.ts",
-    "./deployment": "./src/deployment.ts",
-    "./deployments/coston2": "./src/deployments/coston2.ts",
-    "./explorer": "./src/explorer.ts",
-    "./events": "./src/events.ts",
-    "./fcc": "./src/fcc.ts",
-    "./read-api": "./src/read-api.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./abi": {
+      "types": "./dist/abi.d.ts",
+      "import": "./dist/abi.js",
+      "default": "./dist/abi.js"
+    },
+    "./amounts": {
+      "types": "./dist/amounts.d.ts",
+      "import": "./dist/amounts.js",
+      "default": "./dist/amounts.js"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.js",
+      "default": "./dist/constants.js"
+    },
+    "./deployment": {
+      "types": "./dist/deployment.d.ts",
+      "import": "./dist/deployment.js",
+      "default": "./dist/deployment.js"
+    },
+    "./deployments/coston2": {
+      "types": "./dist/deployments/coston2.d.ts",
+      "import": "./dist/deployments/coston2.js",
+      "default": "./dist/deployments/coston2.js"
+    },
+    "./explorer": {
+      "types": "./dist/explorer.d.ts",
+      "import": "./dist/explorer.js",
+      "default": "./dist/explorer.js"
+    },
+    "./events": {
+      "types": "./dist/events.d.ts",
+      "import": "./dist/events.js",
+      "default": "./dist/events.js"
+    },
+    "./fcc": {
+      "types": "./dist/fcc.d.ts",
+      "import": "./dist/fcc.js",
+      "default": "./dist/fcc.js"
+    },
+    "./read-api": {
+      "types": "./dist/read-api.d.ts",
+      "import": "./dist/read-api.js",
+      "default": "./dist/read-api.js"
+    },
     "./runtime/read-api": {
       "default": "./dist/read-api.js"
     }
