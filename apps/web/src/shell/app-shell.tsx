@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, type ReactNode } from "react";
 
 import type { DataProvenance } from "../adapters/contracts";
+import { getAppTradeUrl } from "../lib/routes";
 import { Navigation, landingNavItems, appNavItems } from "./navigation";
 import { RaycastCommandPalette } from "./command-palette";
 import { HeaderWalletButton } from "./wallet-button";
@@ -61,10 +62,10 @@ export function AppShell({
           {/* Desktop Right Action Buttons */}
           <div className="raycast-right-actions">
             {isLanding ? (
-              <Link href="/trade" className="raycast-cta-btn" style={{ textDecoration: "none" }}>
+              <a href={getAppTradeUrl("/trade")} className="raycast-cta-btn" style={{ textDecoration: "none" }}>
                 <span>Launch App</span>
                 <span style={{ fontSize: "0.875rem" }}>→</span>
-              </Link>
+              </a>
             ) : (
               <HeaderWalletButton />
             )}
@@ -156,15 +157,15 @@ export function AppShell({
                   <span style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
                     Settlement App
                   </span>
-                  <Link
-                    href="/trade"
+                  <a
+                    href={getAppTradeUrl("/trade")}
                     className="raycast-cta-btn"
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ textDecoration: "none" }}
                   >
                     <span>Launch App</span>
                     <span style={{ fontSize: "0.875rem" }}>→</span>
-                  </Link>
+                  </a>
                 </>
               ) : (
                 <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
