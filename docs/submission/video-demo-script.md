@@ -16,10 +16,10 @@ Prepare and open the following tabs in order:
 1. **Tab 1 (Landing Page):** `https://hushflow.dev/`
 2. **Tab 2 (Trading Cockpit - Seller):** `https://hushflow.dev/trade`
 3. **Tab 3 (Liquidity Provider - Maker):** `https://hushflow.dev/liquidity`
-4. **Tab 4 (Portfolio & Settlements):** `https://hushflow.dev/portfolio`
+4. **Tab 4 (Portfolio & Accounting):** `https://hushflow.dev/portfolio`
 5. **Tab 5 (Proof Center):** `https://hushflow.dev/proof`
-6. **Tab 6 (Public Simulated FCC Endpoint):** `https://fcc.hushflow.dev/info`
-7. **Tab 7 (Coston2 Explorer):** `https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`
+6. **Tab 6 (Coston2 Explorer):** `https://coston2-explorer.flare.network/address/0x5bdfb417953fd1f87383dc07b8677a5b9cc880ab`
+7. **Tab 7 (Public Simulated FCC Endpoint):** `https://fcc.hushflow.dev/info`
 
 ---
 
@@ -27,11 +27,11 @@ Prepare and open the following tabs in order:
 
 ```mermaid
 graph LR
-    A[0:00 - 0:35<br>Landing Page & Hero Demo] --> B[0:35 - 1:15<br>Seller Cockpit /trade]
+    A[0:00 - 0:35<br>Landing Page & Hero Demo] --> B[0:35 - 1:15<br>Seller Workflow /trade]
     B --> C[1:15 - 1:55<br>Maker Bidding /liquidity]
-    C --> D[1:55 - 2:25<br>Portfolio Claims /portfolio]
-    D --> E[2:25 - 2:50<br>Proof Center & Enclave]
-    E --> F[2:50 - 3:00<br>Closing & Architecture]
+    C --> D[1:55 - 2:25<br>Portfolio Accounting /portfolio]
+    D --> E[2:25 - 2:50<br>Proof Center & Coston2 Explorer]
+    E --> F[2:50 - 3:00<br>Engineering Rigor & Closing]
 ```
 
 ---
@@ -47,48 +47,48 @@ graph LR
 > 🎙️ **Voiceover Script (English):**  
 > *"Welcome to **HushFlow** — the confidential execution and settlement protocol for XRPFi on Flare Network.*  
 > 
-> *Public RFQs leak critical market data. Sellers reveal price floors and market makers leak pricing models, exposing everyone to front-running, sandwich attacks, and predatory MEV.*  
+> *Public RFQs leak critical market data. Sellers reveal price floors and market makers leak private pricing models, exposing participants to front-running, sandwich attacks, and predatory MEV.*  
 > 
-> *HushFlow solves this: commercial matching runs inside isolated **Flare Confidential Compute (FCC)** enclaves, settling atomically on Coston2.*  
+> *HushFlow solves this by decoupling private negotiation from public settlement. Commercial matching is evaluated off-chain using the official Flare Confidential Compute (FCC) scaffold in simulated-TEE mode, settling mathematically on Flare Coston2.*  
 > 
-> *Let’s walk through the full product suite."*
+> *Let’s walk through the product interface and on-chain verification."*
 
 ---
 
-### 🕒 SCENE 2: Seller Side — Trading Cockpit & FTSO V2 (`/trade`) (0:35 – 1:15)
+### 🕒 SCENE 2: Seller Side — Trading Walkthrough (`/trade`) (0:35 – 1:15)
 
 * **Screen View:** Tab 2 (`https://hushflow.dev/trade`)
-* **Mouse Actions:**
-  1. *(0:35 - 0:45)* Move mouse over the **Interactive SVG Market Chart** (hover along the curve to trigger the crosshair tooltip `$2.4852` and click timeframe `24H` or `7D`).
-  2. *(0:45 - 0:55)* Highlight the telemetry badge *"Flare FTSO V2 Anchor"* and the *"ECIES Sealed"* indicator.
-  3. *(0:55 - 1:15)* In the **"Create Private RFQ"** form on the right:
-     - Keep Lot at `1.0 FXRP` and Secret Minimum at `4.0 USDT0` (highlight *"Encrypted for TEE"*).
-     - Click **"Sign & Broadcast Sealed RFQ →"**.
-     - Watch the 3-step encryption progression (*"Encrypting with ECIES-secp256k1..."* $\rightarrow$ *"Routing to Flare FCC TEE Enclave..."* $\rightarrow$ *"Escrowing in HushFlowRfq.sol..."*) until the **Success Banner (Tx `0xce351a60...`)** appears.
+* **Mouse Actions:** *(UI Walkthrough — Do NOT click submit button)*
+  1. *(0:35 - 0:50)* Hover along the **Market Chart** curve and point out the reference baseline price ($2.485 USDT0) and *"ECIES Sealed"* indicator.
+  2. *(0:50 - 1:15)* In the **"Create Private RFQ"** card on the right:
+     - Point mouse to **Offer Asset Lot** (`1.0 FXRP` custody).
+     - Point mouse to **Secret Minimum Price** (`4.0 USDT0`) and highlight the badge *"Encrypted for TEE"*.
+     - Explain the client-side encryption without triggering a transaction submission.
 
 > 🎙️ **Voiceover Script (English):**  
-> *"First, the Seller experience on `/trade`.*  
+> *"This interface illustrates the seller and maker workflow.*  
 > 
-> *Traders get institutional telemetry anchored by **Flare FTSO V2** at 2.485 USDT0 to ensure fair reference pricing.*  
+> *Here on the trading desk, the seller sets up an order to swap 1 FXRP with a secret reservation price of 4.0 USDT0.*  
 > 
-> *A seller deposits 1 FXRP lot and sets a secret reserve price of 4.0 USDT0. This floor price is encrypted client-side using ECIES-secp256k1 before broadcast. To searchers in the mempool, it is 100% opaque ciphertext."*
+> *Private terms are designed to be ECIES-sealed client-side before entering the FCC resolution path, making the floor price completely opaque to searchers in the mempool. For this hackathon demo, the UI uses a controlled settlement scenario rather than submitting a fresh trade during recording."*
 
 ---
 
-### 🕒 SCENE 3: Maker Side — Liquidity Provider (`/liquidity`) (1:15 – 1:55)
+### 🕒 SCENE 3: Maker Side — Liquidity Provider Desk (`/liquidity`) (1:15 – 1:55)
 
 * **Screen View:** Tab 3 (`https://hushflow.dev/liquidity`)
-* **Mouse Actions:**
-  1. *(1:15 - 1:25)* Highlight the **"ACTIVE RFQ TARGET"** card (`#RFQ-0042`, lot 1.0 FXRP, required collateral 5.0 USDT0).
-  2. *(1:25 - 1:40)* In the **"Submit Sealed Quote"** form on the right, click the quick button `4.0 USDT0` and highlight *"Required Escrow Collateral 5.0 USDT0 (100% Refundable)"*.
-  3. *(1:40 - 1:55)* Click **"Sign & Submit Encrypted Quote →"** (watch the TEE public key encryption sequence $\rightarrow$ collateral escrow $\rightarrow$ **Success Banner Tx `0xb6448e17...`**).
+* **Mouse Actions:** *(UI Walkthrough — Do NOT click submit button)*
+  1. *(1:15 - 1:35)* Hover over the **"ACTIVE RFQ TARGET"** card (`#RFQ-0042`, lot 1.0 FXRP, required collateral 5.0 USDT0, oracle reference anchor).
+  2. *(1:35 - 1:55)* In the **"Submit Sealed Quote"** card on the right:
+     - Point to the **Private Bid** field (`4.0 USDT0`) with *"Encrypted for TEE"*.
+     - Point to the **Required Escrow Collateral** field (`5.0 USDT0`) highlighting *"100% Refundable"*.
 
 > 🎙️ **Voiceover Script (English):**  
-> *"Next, the Liquidity Provider experience on `/liquidity`.*  
+> *"On the maker side, liquidity providers inspect active target RFQs without seeing the seller's secret floor or competing quotes.*  
 > 
-> *Market makers inspect active target RFQs without ever seeing the seller's secret floor or competing quotes.*  
+> *Makers submit sealed bids backed by refundable collateral, encrypted with the Flare TEE public key so rival makers cannot spy on or shade their quotes.*  
 > 
-> *A maker submits a sealed bid of 4.0 USDT0 backed by 5.0 USDT0 collateral. Their bid is encrypted with the Flare TEE public key, ensuring rival makers cannot spy on or shade their quotes."*
+> *All quotes remain confidential until decrypted simultaneously inside the enclave during batch clearing."*
 
 ---
 
@@ -96,33 +96,36 @@ graph LR
 
 * **Screen View:** Tab 4 (`https://hushflow.dev/portfolio`)
 * **Mouse Actions:**
-  1. *(1:55 - 2:10)* Point out the 3 top balance summary cards: **Locked Collateral** (5.00 USDT0), **Claimable Proceeds** (4.00 USDT0), and **Settled Assets** (1.00 FXRP).
-  2. *(2:10 - 2:25)* Scroll down to the position rows:
-     - Highlight **Seller Row**: Offered 1.0 FXRP $\rightarrow$ Received 4.00 USDT0.
-     - Highlight **Winning Provider Row**: Bid 4.00 USDT0 $\rightarrow$ Received 1.0 FXRP lot.
-     - Highlight **Outbid Provider Row**: Bid 3.50 USDT0 $\rightarrow$ **5.0 USDT0 Collateral 100% Refunded**.
+  1. *(1:55 - 2:10)* Point to the 3 top balance summary cards: **Locked Collateral** (5.00 USDT0), **Claimable Proceeds** (4.00 USDT0), and **Settled Assets** (1.00 FXRP).
+  2. *(2:10 - 2:25)* Scroll down to highlight the three participant outcomes:
+     - **Seller:** Delivered 1.0 FXRP $\rightarrow$ Received 4.00 USDT0 proceeds.
+     - **Winning Provider:** Bid 4.00 USDT0 $\rightarrow$ Received 1.0 FXRP lot.
+     - **Outbid Provider:** Bid 3.50 USDT0 $\rightarrow$ **5.0 USDT0 Collateral 100% Refunded**.
 
 > 🎙️ **Voiceover Script (English):**  
-> *"On the `/portfolio` dashboard, users track their settled positions and escrow balances.*  
+> *"The accounting screen visualizes the settlement outcome: seller proceeds, winner delivery, and losing-maker collateral refund. The on-chain evidence is shown next.*  
 > 
-> *Once our Flare TEE extension evaluates the envelopes, the on-chain contract enforces terminal claims: the seller receives 4 USDT0, the winning maker receives the FXRP lot, and non-winning makers automatically receive a guaranteed 100% collateral refund through non-custodial pull claims."*
+> *Once the FCC enclave evaluates the sealed envelopes, the smart contract guarantees non-custodial pull claims: proceeds go to the seller, assets go to the winning bidder, and all non-winning collateral is unlocked for full refund."*
 
 ---
 
-### 🕒 SCENE 5: Verifiable Proofs, Live Enclave & Explorer (2:25 – 2:50)
+### 🕒 SCENE 5: Verifiable Settlement Drill & Flare FCC Boundary (2:25 – 2:50)
 
-* **Screen View:** Switch between Tab 5 (`/proof`), Tab 6 (`fcc.hushflow.dev/info`), and Tab 7 (Coston2 Explorer).
+* **Screen View:** Tab 5 (`/proof`) $\rightarrow$ Tab 6 (Coston2 Explorer) $\rightarrow$ Tab 7 (`fcc.hushflow.dev/info`).
 * **Mouse Actions:**
-  1. *(2:25 - 2:35)* In `/proof`, show the audit trail and verifiable attestation receipts.
-  2. *(2:35 - 2:42)* In `https://fcc.hushflow.dev/info`, show the live public simulated proxy response (`chainId: 114`, `initialSigningPolicyId: 5936`, `publicKey`).
-  3. *(2:42 - 2:50)* In Coston2 Explorer, show the deployed contract `0x5bdfb417...` and confirmed transactions.
+  1. *(2:25 - 2:33)* In `/proof`, show the cryptographic audit trail and contract verifier address.
+  2. *(2:33 - 2:43)* In Coston2 Explorer (Tab 6), show the `HushFlowRfq` contract and highlight key confirmed transactions from our 11-step drill:
+     - `CREATE_RFQ` (`0xce351a60...`)
+     - `SUBMIT_RESULT` (`0xcbdda0ae...`)
+     - `CLAIM_SELLER` (`0xc6dcf965...`) and collateral refunds.
+  3. *(2:43 - 2:50)* Switch to `https://fcc.hushflow.dev/info` (Tab 7) to show the live public simulated proxy response (`chainId: 114`, `initialSigningPolicyId: 5936`, `publicKey`).
 
 > 🎙️ **Voiceover Script (English):**  
-> *"In our **Proof Center**, every state transition produces verifiable receipts.*  
+> *"Here is the verifiable boundary: HushFlow has executed an 11-transaction controlled settlement drill on Flare Coston2.*  
 > 
-> *Our public simulated Flare TEE proxy endpoint is reachable at `fcc.hushflow.dev/info`, powering the settlement drill where all 11 lifecycle transactions are confirmed on-chain on Coston2.*  
+> *Separately, this public endpoint exposes our FCC scaffold running in simulated-TEE mode. We do not claim production hardware attestation in this demo.*  
 > 
-> *HushFlow proves a real 11-transaction settlement lifecycle on Coston2, while its FCC integration runs through Flare’s official scaffold in simulated-TEE mode for the hackathon. The same architecture is designed to seamlessly transition to a registered GCP Confidential Space production enclave through the standard on-chain FCC registration flow."*
+> *The production path requires registering a Confidential Space machine through Flare’s FCC lifecycle. The contract, resolver, and scaffold adapter are structured for that transition."*
 
 ---
 
@@ -138,6 +141,7 @@ graph LR
 
 ## 💡 Practical Recording Tips for Best Score
 
-1. **Pre-test Clicks:** Do a 60-second dry run clicking across the tabs so your mouse movements look smooth and confident.
-2. **Audio Quality:** Use a decent headset or microphone in a quiet room with minimal background echo.
-3. **Upload Setting:** Upload to YouTube as **Unlisted** (or **Public**) with title *"HushFlow — Hackathon Demo | Flare FCC & XRPFi"*.
+1. **Keep Recording Clean:** Follow the tab sequence Tab 1 $\rightarrow$ Tab 2 $\rightarrow$ Tab 3 $\rightarrow$ Tab 4 $\rightarrow$ Tab 5 $\rightarrow$ Tab 6 $\rightarrow$ Tab 7.
+2. **No Fake Submissions:** Avoid pressing submit buttons during the walkthrough; let the block explorer on Tab 6 serve as the immutable proof of settlement.
+3. **Audio Quality:** Use a decent headset or microphone in a quiet room with minimal background echo.
+4. **Upload Setting:** Upload to YouTube as **Unlisted** (or **Public**) with title *"HushFlow — Hackathon Demo | Flare FCC & XRPFi"*.

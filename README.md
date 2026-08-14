@@ -33,8 +33,8 @@
 
 Evaluators can inspect the end-to-end confidential RFQ lifecycle directly on the live web deployment at **[hushflow.dev](https://hushflow.dev)**:
 
-1. **Trading Cockpit (`/trade`):** Live FXRP/USDT0 order book, interactive depth chart, and Flare FTSO V2 reference price anchor.
-2. **Liquidity Provider Desk (`/liquidity`):** Active target RFQ inspection and sealed quote submission backed by refundable USDT0 escrow.
+1. **Trading Cockpit (`/trade`):** Interactive controlled RFQ walkthrough, depth chart visualization, and FTSO V2-oriented reference-price interface (live oracle contract wiring is targeted for production migration).
+2. **Liquidity Provider Desk (`/liquidity`):** Active target RFQ inspection and sealed quote submission walkthrough backed by refundable USDT0 escrow.
 3. **Portfolio & Claims (`/portfolio`):** Terminal position ledger, claimable balance allocation, and 100% collateral refund auditing.
 4. **Proof Center (`/proof`):** Cryptographic verification receipts and direct Flare Coston2 block explorer transactions.
 
@@ -51,6 +51,8 @@ Public Request-for-Quote (RFQ) protocols on decentralized networks suffer from s
 1. **Client-Side Sealing:** Sellers and liquidity providers encrypt commercial terms using standard ECIES cryptography (secp256k1 + AES-GCM + SHA-256).
 2. **Flare Confidential Compute (FCC):** A secure enclave adapter (`HUSHFLOW / RESOLVE_RFQ` built on the official FCE scaffold) decrypts private envelopes, selects the winning quote via deterministic tie-breaking, and signs an execution attestation.
 3. **On-Chain Settlement:** The `HushFlowRfq` and `HushFlowResultVerifier` contracts verify the signed resolution on Flare Coston2, transferring the FXRP lot to the winner and USDT0 proceeds to the seller, while automatically unlocking 100% collateral refunds for losing participants.
+
+> **Note on Hackathon Demonstration Mode:** For the Coston2 hackathon demonstration, the FCC execution path runs through the official scaffold in simulated-TEE mode; the 11-step ledger independently proves the settlement contract lifecycle.
 
 ---
 
@@ -140,7 +142,7 @@ HushFlow maintains rigorous technical transparency regarding tested versus pendi
 HushFlow natively composes core Flare Network primitives:
 
 1. **Flare Confidential Compute (FCC):** Off-chain enclave execution where multi-party sealed bids are matched without exposing pricing models to mempool searchers.
-2. **Flare Time Series Oracle (FTSO V2):** Real-time decentralized reference price anchors for FXRP/USDT0 integrated into trading telemetry.
+2. **Flare Time Series Oracle (FTSO V2):** FTSO V2 reference pricing design integrated into trading telemetry as a baseline anchor (direct on-chain contract feed integration targeted for production deployment).
 3. **Flare Coston2 / EVM:** Non-custodial escrow custody, signature verification, and pull-based terminal claims.
 
 ---
